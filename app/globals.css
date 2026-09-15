@@ -1,0 +1,14 @@
+@import "tailwindcss";
+
+@theme inline {
+  --font-serif: var(--font-serif);
+  --font-mono: var(--font-mono);
+}
+
+body {
+  font-family: var(--font-serif), Georgia, serif;
+}
+
+.font-data {
+  font-family: var(--font-mono), ui-monospace, monospace;
+}
