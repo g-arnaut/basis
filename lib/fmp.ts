@@ -45,6 +45,10 @@ function num(obj: Record<string, unknown> | null, key: string): number | null {
 }
 
 export async function fetchCompanyFinancials(ticker: string): Promise<FetchedFinancials> {
+  if (!process.env.FMP_API_KEY) {
+    throw new Error("FMP_API_KEY is not set");
+  }
+
   const symbol = ticker.toUpperCase();
 
   const [incomeRes, balanceRes, cashFlowRes, ratiosRes] = await Promise.all([
@@ -58,6 +62,14 @@ export async function fetchCompanyFinancials(ticker: string): Promise<FetchedFin
   const bal = firstOf(balanceRes);
   const cf = firstOf(cashFlowRes);
   const rat = firstOf(ratiosRes);
+
+  // individual endpoints tolerate partial failure (one bad endpoint
+  // shouldn't blank out the rest), but if every single one failed this
+  // was a total outage/bad key, not a partial pull — surface it as an
+  // error instead of silently saving an all-null financials snapshot
+  if (!inc && !bal && !cf && !rat) {
+    throw new Error("FMP returned no usable data for any endpoint");
+  }
 
   return {
     fiscalPeriod: (inc?.date as string) ?? null,

@@ -171,6 +171,25 @@ export async function uploadReportPdf(formData: FormData) {
   revalidatePath(`/reports/${reportId}`);
 }
 
+export async function deleteReport(reportId: number) {
+  await requireAdmin();
+
+  const report = await db.query.companyReports.findFirst({
+    where: eq(companyReports.id, reportId),
+  });
+  if (!report) return;
+
+  if (report.pdfUrl) {
+    await del(report.pdfUrl).catch(() => {});
+  }
+
+  await db.delete(companyReports).where(eq(companyReports.id, reportId));
+
+  revalidatePath("/reports");
+  revalidatePath("/");
+  redirect("/reports");
+}
+
 export async function removeReportPdf(reportId: number) {
   await requireAdmin();
 

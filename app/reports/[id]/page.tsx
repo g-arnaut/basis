@@ -4,6 +4,7 @@ import { getReport } from "@/app/actions/reports";
 import { isAdmin } from "@/lib/auth";
 import { RefreshFinancialsButton } from "./refresh-financials-button";
 import { PdfAttachment } from "./pdf-attachment";
+import { DeleteReportButton } from "./delete-report-button";
 
 export const dynamic = "force-dynamic";
 
@@ -50,9 +51,12 @@ export default async function ReportPage({
 
   return (
     <main className="mx-auto w-full max-w-4xl px-6 py-14">
-      <Link href="/reports" className="text-sm text-muted hover:text-ink">
-        ← Reports
-      </Link>
+      <div className="flex items-center justify-between">
+        <Link href="/reports" className="text-sm text-muted hover:text-ink">
+          ← Reports
+        </Link>
+        {admin && <DeleteReportButton reportId={report.id} />}
+      </div>
 
       <div className="mt-6">
         <div className="flex items-baseline gap-2">
