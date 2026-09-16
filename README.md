@@ -6,67 +6,152 @@ the S&P 500, so performance shows alpha, not beta.
 ## Stack
 
 Next.js (App Router) + TypeScript + Tailwind, Drizzle ORM, Postgres
-(Supabase or Vercel Postgres), deployed on Vercel.
+(Supabase), deployed on Vercel. Prices via Stooq (free, no API key).
 
-## Week 1 checklist
+## Status
 
-- [x] Repo scaffolded (Next.js + TS + Tailwind)
-- [x] Postgres schema drafted: `theses`, `model_versions`, `price_history`,
-      `benchmarks`, `journal_entries` (see `db/schema.ts`)
-- [ ] Push schema to a real Postgres instance
-- [ ] Deploy skeleton live to Vercel
-- [ ] Confirm `/api/health` returns `ok: true` in production
+- [x] Week 1 — repo, schema, skeleton deployed
+- [x] Phase 1 — thesis CRUD, kill criteria, journal, daily price cron,
+      relative-performance chart
+- [x] Public site — password-gated write access, track record stats,
+      public read-only view of every thesis
+- [x] Company reports — written analysis + auto-pulled financials
+      (income statement / balance sheet / cash flow / ratios), optionally
+      linked to a thesis
+- [ ] Phase 2 remainder — Excel model ingestion/versioning
+- [ ] Phase 3 — Stock Scout signal feed
+- [ ] Phase 4 — fuller scorecard dashboard (hit rate is already on the
+      homepage; best/worst calls still to come)
 
 ## Local setup
 
 ```bash
 npm install
-cp .env.example .env       # fill in DATABASE_URL
-npm run db:push            # create tables from db/schema.ts
+cp .env.example .env       # fill in DATABASE_URL, CRON_SECRET, ADMIN_PASSWORD, FMP_API_KEY
+npm run db:push            # apply schema
 npm run db:seed            # seed SPY + starter sector ETF tickers
 npm run dev
 ```
 
-Visit `/api/health` — it should return
-`{ ok: true, benchmarksSeeded: 8 }` once seeded.
+Visit `/api/health` to confirm the DB connection. Go to `/admin/login`
+and sign in with your `ADMIN_PASSWORD` to see the "+ New thesis" button
+and write controls — logged out, you see exactly what a visitor would.
 
-## Getting a Postgres instance (pick one)
+## Setting up company reports (Financial Modeling Prep)
 
-**Supabase** (recommended — generous free tier, easy dashboard):
-1. New project at supabase.com
-2. Settings → Database → copy the **Transaction pooler** connection string
-   (port 6543) into `DATABASE_URL`
+1. Sign up at financialmodelingprep.com (free tier works for this)
+2. Get your API key from the dashboard
+3. Add it as `FMP_API_KEY` in `.env` (locally) and in Vercel's
+   Environment Variables (for production)
 
-**Vercel Postgres**: Storage tab in your Vercel project → Create →
-Postgres. It injects `DATABASE_URL` (and other vars) automatically once
-connected — pull them locally with `vercel env pull .env`.
+Without a key, `/reports/new` still works — the report saves with your
+written analysis, the financials panel just shows "unavailable." Once a
+key is set, use "Refresh financials" on any existing report to pull it in
+without re-entering the analysis.
 
-## Deploying to Vercel
+**Field-mapping caveat:** the parsing in `lib/fmp.ts` was written against
+FMP's documented API shape, not tested against a live key (no live
+network access in the environment that built this). If numbers come back
+null with a real key, the pull itself likely worked — check
+`rawFinancials` on the report row in the database for FMP's actual field
+names and adjust the mapping in `lib/fmp.ts` accordingly. Nothing is lost
+in the meantime since the raw response is always stored.
 
-1. Push this repo to GitHub
-2. Import it at vercel.com/new
-3. Add `DATABASE_URL` (and later `FMP_API_KEY`, `ANTHROPIC_API_KEY`) in
-   Project Settings → Environment Variables
-4. Deploy. Then run `npm run db:push` and `npm run db:seed` locally (or
-   via a one-off Vercel CLI command) against the same `DATABASE_URL` so
-   the deployed app has tables + seed data.
+## Deploying changes
 
-## Schema notes
+```bash
+git add .
+git commit -m "Company reports + design pass"
+git push
+```
 
-- `benchmarks` is a small reference table (SPY + sector ETF tickers).
-  `theses.sectorEtfId` / `sp500BenchmarkId` point into it, so relative
-  performance is always computed against explicit benchmark rows, not a
-  hardcoded ticker string.
-- `price_history` gets one row per (thesis, date) from the daily cron —
-  stock price alongside both benchmark prices, so alpha is a query away.
-- `model_versions.namedRanges` holds the full SheetJS-parsed named-range
-  dump; `wacc` / `terminalGrowth` / `impliedPrice` are pulled out as real
-  columns too so you're not reaching into JSON for the headline numbers.
-- `kill_criteria` is JSON array of `{ condition, hit, hitDate }` — flip
-  `hit` when a criterion is objectively triggered.
+Vercel redeploys automatically on push to `main`. Environment variables
+to have set in the Vercel dashboard (**Settings → Environment
+Variables**): `DATABASE_URL`, `CRON_SECRET`, `ADMIN_PASSWORD`, and now
+`FMP_API_KEY`. Cron itself needs no manual setup — `vercel.json` defines
+the schedule and Vercel picks it up on deploy.
 
-## Next up (Phase 1, weeks 2-4)
+If you ever reset your Supabase database password, update `DATABASE_URL`
+in **both** your local `.env` and Vercel's Environment Variables, then
+redeploy.
 
-Thesis CRUD, entry/target price capture, the daily Vercel Cron job
-logging price + sector ETF + S&P into `price_history`, and the
-relative-performance chart. Protect this phase above all else.
+## How the public/private split works
+
+- Every mutating action (`createThesis`, `addJournalEntry`,
+  `toggleKillCriterion`, `closeThesis`, `createReport`,
+  `refreshFinancials`) calls `requireAdmin()` first — even if someone
+  bypassed the UI and called the action directly, it's still blocked
+  without the right cookie.
+- `isAdmin()` checks a cookie set only by `/admin/login`, which checks
+  the password against `ADMIN_PASSWORD`. No `ADMIN_PASSWORD` set = no
+  admin access is possible, ever — the site defaults safe.
+- The UI hides write affordances entirely when logged out (no "+ New
+  thesis"/"New report" buttons, no kill-criteria checkboxes, no journal
+  input, no close-thesis form, no refresh-financials button) rather than
+  showing them disabled — a logged-out visitor sees exactly the
+  read-only public record.
+
+## How the alpha tracking works
+
+- `benchmarks` holds SPY plus sector ETF tickers. Each thesis points at one
+  sector ETF (`sectorEtfId`) and always gets SPY as `sp500BenchmarkId`
+  automatically on creation.
+- The daily cron (`/api/cron/prices`) fetches the stock's price and both
+  benchmark prices from Stooq for every *open* thesis, and upserts one row
+  per thesis per day into `price_history` (safe to run more than once a
+  day — it updates rather than duplicates).
+- `lib/performance.ts` indexes the stock and both benchmarks to 100 at
+  entry date, so they plot on the same chart regardless of share price.
+  Where your line sits above the benchmark lines *is* the alpha. The
+  homepage sparklines use the same indexed stock series.
+- Kill criteria live as JSON on each thesis (`condition`, `hit`,
+  `hitDate`). Checking one off in the UI logs a journal entry
+  automatically — that's the "flags when objectively hit" behavior from
+  the brief, done manually for now rather than auto-detected.
+- The homepage stats (average / median / beat-rate / win-rate) are
+  computed live from whatever theses exist — no separate scorecard table
+  yet, that's the fuller Phase 4 dashboard still to come.
+- Closing a thesis requires a written reflection, not just an exit price
+  — stored as a `closeout` journal entry.
+
+## How company reports work
+
+- A report is independent of a thesis — you can write one on a company
+  you're only watching. `thesisId` is nullable; setting it shows a
+  "Position TICKER open/closed →" link on the report page.
+- On creation, `lib/fmp.ts` pulls income statement, balance sheet, cash
+  flow, and ratios in parallel and extracts a handful of headline figures
+  (revenue, margins, FCF, debt, cash, EV/EBITDA, ROE, ROIC) into real
+  columns on `company_reports`, plus the full raw response into
+  `rawFinancials` as a fallback/debugging reference.
+- If any of the four calls fails (bad key, rate limit, delisted ticker),
+  the report still saves — `financialsError` records what went wrong,
+  and the UI shows "unavailable" instead of the stat panel.
+
+## Site structure — desks
+
+The nav is organized as "desks": Equity (the real, populated one — home
+page), Credit and Derivatives (empty placeholder pages at `/credit` and
+`/derivatives`, ready for a schema and real pages once there's an actual
+position to track, deliberately not built speculatively ahead of one),
+and Reports (independent of desks, since a report doesn't require a
+position). The header's ticker strip shows real data — current price and
+return since entry for every open thesis — not a live feed.
+
+## Known limitations (fine for now, revisit later)
+
+- Stooq occasionally has gaps or delisted-ticker issues — the cron logs
+  which tickers failed each run (`failed` array in the JSON response) so
+  you can investigate rather than silently missing data.
+- FMP field mapping is unverified against a live key — see the caveat
+  above.
+- Single shared password, not real user accounts — fine for a one-owner
+  site, wouldn't scale to multiple contributors.
+- No `direction` field yet — every thesis is implicitly long. If you add
+  a short position later (you've done long/short before), the schema and
+  return math both assume price-up-is-good and would need a small change
+  first.
+- Credit and derivatives aren't modeled — the schema (entry/target price,
+  sector ETF benchmark) is equity-shaped. Treat that as a separate future
+  module with its own table and page, built when there's a real position
+  to put in it, not speculatively ahead of one.

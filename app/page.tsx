@@ -1,73 +1,159 @@
-const pillars = [
-  {
-    name: "Thesis Tracker",
-    detail:
-      "Entry, target, bear case, and kill criteria — tracked against sector and S&P 500 benchmarks.",
-    status: "In progress",
-    active: true,
-  },
-  {
-    name: "Excel Modeling Engine",
-    detail:
-      "DCF / comps / 3-statement models, uploaded and versioned via named ranges.",
-    status: "Phase 2",
-    active: false,
-  },
-  {
-    name: "Company Deep-Dives",
-    detail: "Auto-pulled financials, ratios, and written analysis per ticker.",
-    status: "Phase 2",
-    active: false,
-  },
-  {
-    name: "Signal Feed",
-    detail: "Stock Scout Agent folded in as a live module.",
-    status: "Phase 3",
-    active: false,
-  },
-];
+import Link from "next/link";
+import { listAllTheses, getPriceHistory } from "@/app/actions/theses";
+import { listReports } from "@/app/actions/reports";
+import { indexPriceSeries, currentAlpha } from "@/lib/performance";
+import { isAdmin } from "@/lib/auth";
+import { ThesisList } from "./thesis-list";
+import { HowMeasured } from "./how-measured";
 
-export default function Home() {
+// Prices change daily — never freeze this page at build time.
+export const dynamic = "force-dynamic";
+
+function formatPct(n: number | null) {
+  if (n == null) return "—";
+  const sign = n > 0 ? "+" : "";
+  return `${sign}${n.toFixed(1)}%`;
+}
+
+function tone(n: number | null) {
+  if (n == null) return "text-ink";
+  return n >= 0 ? "text-gain" : "text-loss";
+}
+
+export default async function Home() {
+  const allTheses = await listAllTheses();
+  const admin = await isAdmin();
+
+  const rows = await Promise.all(
+    allTheses.map(async (thesis) => {
+      const history = await getPriceHistory(thesis.id);
+      const points = [
+        {
+          date: thesis.entryDate,
+          stockPrice: Number(thesis.entryPrice),
+          sectorEtfPrice: null,
+          sp500Price: null,
+        },
+        ...history.map((h) => ({
+          date: h.date,
+          stockPrice: Number(h.stockPrice),
+          sectorEtfPrice: h.sectorEtfPrice != null ? Number(h.sectorEtfPrice) : null,
+          sp500Price: h.sp500Price != null ? Number(h.sp500Price) : null,
+        })),
+      ];
+      const indexed = indexPriceSeries(points);
+      const alpha = currentAlpha(indexed);
+      const latestPrice =
+        history.length > 0 ? Number(history[history.length - 1].stockPrice) : Number(thesis.entryPrice);
+      const rawReturn = ((latestPrice - Number(thesis.entryPrice)) / Number(thesis.entryPrice)) * 100;
+
+      return {
+        id: thesis.id,
+        ticker: thesis.ticker,
+        companyName: thesis.companyName,
+        entryDate: thesis.entryDate,
+        exitDate: thesis.exitDate,
+        status: thesis.status,
+        writeUp: thesis.writeUp,
+        entryPrice: Number(thesis.entryPrice),
+        latestPrice,
+        rawReturn,
+        alphaVsSector: alpha.vsSector,
+        alphaVsSp500: alpha.vsSp500,
+        sparkline: indexed.map((p) => p.stock),
+      };
+    })
+  );
+
+  const reports = await listReports();
+
+  const closedRows = rows.filter((r) => r.status !== "open");
+  const winRows = closedRows.filter((r) => r.status === "closed_win");
+
+  const alphaValues = rows.map((r) => r.alphaVsSp500).filter((v): v is number => v != null);
+  const sorted = [...alphaValues].sort((a, b) => a - b);
+  const avgAlpha = alphaValues.length > 0 ? alphaValues.reduce((a, b) => a + b, 0) / alphaValues.length : null;
+  const medianAlpha =
+    sorted.length > 0
+      ? sorted.length % 2 === 1
+        ? sorted[(sorted.length - 1) / 2]
+        : (sorted[sorted.length / 2 - 1] + sorted[sorted.length / 2]) / 2
+      : null;
+  const beatCount = alphaValues.filter((v) => v > 0).length;
+
   return (
-    <main className="mx-auto flex w-full max-w-2xl flex-1 flex-col justify-center px-6 py-24">
-      <p className="font-data text-xs tracking-wide text-[#5B5A54]">
-        Week 1 — schema &amp; skeleton
+    <main className="mx-auto w-full max-w-2xl px-6 py-14">
+      <h1 className="max-w-lg text-4xl font-bold tracking-tight sm:text-5xl">
+        Right or wrong, measured against the market.
+      </h1>
+      <p className="mt-4 max-w-md leading-relaxed text-muted">
+        Equity research notes, and a public record of every call in them —
+        each one held to its sector and the S&amp;P 500 over exactly the
+        period it was open.
       </p>
 
-      <h1 className="mt-4 text-5xl font-medium leading-[1.1]">Basis</h1>
-
-      <p className="mt-5 max-w-md text-lg leading-relaxed text-[#3A3934]">
-        Every thesis measured against its sector and the market — so
-        performance shows alpha, not just direction.
-      </p>
-
-      <div className="mt-16 border-t border-[#D8D6CD]">
-        {pillars.map((pillar, i) => (
-          <div
-            key={pillar.name}
-            className="flex items-baseline justify-between gap-6 border-b border-[#D8D6CD] py-5"
-          >
-            <div className="flex items-baseline gap-4">
-              <span className="font-data text-sm text-[#8B897F]">
-                {String(i + 1).padStart(2, "0")}
-              </span>
-              <div>
-                <h2 className="text-lg">{pillar.name}</h2>
-                <p className="mt-1 max-w-sm text-sm text-[#5B5A54]">
-                  {pillar.detail}
-                </p>
-              </div>
+      {rows.length > 0 && (
+        <>
+          <div className="font-data mt-10 grid grid-cols-2 divide-x divide-y divide-rule border border-rule sm:grid-cols-4 sm:divide-y-0">
+            <div className="p-4">
+              <p className={`text-2xl font-medium ${tone(avgAlpha)}`}>{formatPct(avgAlpha)}</p>
+              <p className="mt-0.5 text-xs text-muted">average, vs S&amp;P</p>
             </div>
-            <span
-              className={`font-data whitespace-nowrap text-xs ${
-                pillar.active ? "text-[#2F6F6B]" : "text-[#8B897F]"
-              }`}
-            >
-              {pillar.status}
-            </span>
+            <div className="p-4">
+              <p className={`text-2xl font-medium ${tone(medianAlpha)}`}>{formatPct(medianAlpha)}</p>
+              <p className="mt-0.5 text-xs text-muted">median, vs S&amp;P</p>
+            </div>
+            <div className="p-4">
+              <p className="text-2xl font-medium text-ink">
+                {alphaValues.length > 0 ? `${beatCount}/${alphaValues.length}` : "—"}
+              </p>
+              <p className="mt-0.5 text-xs text-muted">beat the index</p>
+            </div>
+            <div className="p-4">
+              <p className="text-2xl font-medium text-ink">
+                {closedRows.length > 0 ? `${Math.round((winRows.length / closedRows.length) * 100)}%` : "—"}
+              </p>
+              <p className="mt-0.5 text-xs text-muted">win rate, closed</p>
+            </div>
           </div>
-        ))}
-      </div>
+          <HowMeasured />
+        </>
+      )}
+
+      {rows.length === 0 && (
+        <div className="mt-16 border-y border-rule py-14 text-center text-muted">
+          <p>No theses yet.</p>
+          {admin && (
+            <Link href="/theses/new" className="mt-2 inline-block text-link underline">
+              Write the first one
+            </Link>
+          )}
+        </div>
+      )}
+
+      <ThesisList rows={rows} />
+
+      {reports.length > 0 && (
+        <section className="mt-16 border-t border-rule pt-8">
+          <div className="flex items-baseline justify-between">
+            <p className="text-sm text-muted">Reports</p>
+            <Link href="/reports" className="text-sm text-link hover:underline">
+              All reports →
+            </Link>
+          </div>
+          {reports.slice(0, 3).map((r) => (
+            <Link
+              key={r.id}
+              href={`/reports/${r.id}`}
+              className="block border-b border-rule py-5 hover:bg-ink/[0.02]"
+            >
+              <span className="font-data text-sm text-muted">{r.ticker}</span>
+              <h3 className="mt-1 font-medium">{r.title}</h3>
+              <p className="mt-1 line-clamp-2 text-sm text-muted">{r.analysis}</p>
+            </Link>
+          ))}
+        </section>
+      )}
     </main>
   );
 }

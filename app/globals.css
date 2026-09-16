@@ -1,14 +1,23 @@
 @import "tailwindcss";
 
 @theme inline {
-  --font-serif: var(--font-serif);
+  --font-sans: var(--font-sans);
   --font-mono: var(--font-mono);
+
+  --color-paper: #fafafa;
+  --color-ink: #111113;
+  --color-muted: #6b7280;
+  --color-rule: #e5e5e5;
+  --color-gain: #157a4a;
+  --color-loss: #c0362c;
+  --color-link: #2952cc;
 }
 
 body {
-  font-family: var(--font-serif), Georgia, serif;
+  font-family: var(--font-sans), ui-sans-serif, system-ui, sans-serif;
 }
 
 .font-data {
   font-family: var(--font-mono), ui-monospace, monospace;
+  font-variant-numeric: tabular-nums;
 }

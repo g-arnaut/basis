@@ -1,0 +1,1 @@
+ALTER TABLE "price_history" ADD CONSTRAINT "price_history_thesis_date_unique" UNIQUE("thesis_id","date");
