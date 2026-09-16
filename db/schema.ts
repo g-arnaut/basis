@@ -195,6 +195,12 @@ export const companyReports = pgTable("company_reports", {
   financialsFetchedAt: timestamp("financials_fetched_at", { withTimezone: true }),
   financialsError: text("financials_error"),
 
+  // optional attached PDF (e.g. a filing, a deck) stored in Vercel Blob —
+  // pdfUrl is the public blob URL, pdfFileName is the original upload name
+  pdfUrl: text("pdf_url"),
+  pdfFileName: text("pdf_file_name"),
+  pdfUploadedAt: timestamp("pdf_uploaded_at", { withTimezone: true }),
+
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
 });

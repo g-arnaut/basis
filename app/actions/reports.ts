@@ -8,6 +8,7 @@ import { redirect } from "next/navigation";
 import { z } from "zod";
 import { requireAdmin } from "@/lib/auth";
 import { fetchCompanyFinancials } from "@/lib/fmp";
+import { put, del } from "@vercel/blob";
 
 const createReportSchema = z.object({
   ticker: z.string().min(1).max(10).toUpperCase(),
@@ -120,6 +121,69 @@ export async function refreshFinancials(reportId: number) {
       financialsError: fetchError,
       updatedAt: new Date(),
     })
+    .where(eq(companyReports.id, reportId));
+
+  revalidatePath(`/reports/${reportId}`);
+}
+
+const MAX_PDF_BYTES = 20 * 1024 * 1024; // 20MB
+
+export async function uploadReportPdf(formData: FormData) {
+  await requireAdmin();
+
+  const reportId = Number(formData.get("reportId"));
+  const file = formData.get("pdf");
+  if (!(file instanceof File) || file.size === 0) {
+    throw new Error("No file selected");
+  }
+  if (file.type !== "application/pdf") {
+    throw new Error("File must be a PDF");
+  }
+  if (file.size > MAX_PDF_BYTES) {
+    throw new Error("PDF must be under 20MB");
+  }
+
+  const report = await db.query.companyReports.findFirst({
+    where: eq(companyReports.id, reportId),
+  });
+  if (!report) throw new Error("Report not found");
+
+  // replace the old file in blob storage if one was already attached
+  if (report.pdfUrl) {
+    await del(report.pdfUrl).catch(() => {});
+  }
+
+  const blob = await put(`reports/${reportId}/${file.name}`, file, {
+    access: "public",
+    addRandomSuffix: true,
+  });
+
+  await db
+    .update(companyReports)
+    .set({
+      pdfUrl: blob.url,
+      pdfFileName: file.name,
+      pdfUploadedAt: new Date(),
+      updatedAt: new Date(),
+    })
+    .where(eq(companyReports.id, reportId));
+
+  revalidatePath(`/reports/${reportId}`);
+}
+
+export async function removeReportPdf(reportId: number) {
+  await requireAdmin();
+
+  const report = await db.query.companyReports.findFirst({
+    where: eq(companyReports.id, reportId),
+  });
+  if (!report?.pdfUrl) return;
+
+  await del(report.pdfUrl).catch(() => {});
+
+  await db
+    .update(companyReports)
+    .set({ pdfUrl: null, pdfFileName: null, pdfUploadedAt: null, updatedAt: new Date() })
     .where(eq(companyReports.id, reportId));
 
   revalidatePath(`/reports/${reportId}`);

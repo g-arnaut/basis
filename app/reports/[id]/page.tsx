@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { getReport } from "@/app/actions/reports";
 import { isAdmin } from "@/lib/auth";
 import { RefreshFinancialsButton } from "./refresh-financials-button";
+import { PdfAttachment } from "./pdf-attachment";
 
 export const dynamic = "force-dynamic";
 
@@ -107,6 +108,13 @@ export default async function ReportPage({
               <RefreshFinancialsButton reportId={report.id} />
             </div>
           )}
+
+          <PdfAttachment
+            reportId={report.id}
+            pdfUrl={report.pdfUrl}
+            pdfFileName={report.pdfFileName}
+            admin={admin}
+          />
         </div>
       </div>
     </main>
