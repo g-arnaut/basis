@@ -15,7 +15,7 @@ export function HowMeasured() {
           <p>
             Every thesis gets a sector ETF benchmark (picked at open) and the
             S&amp;P 500 automatically. Both are indexed to 100 at the
-            thesis&apos;s entry date, same as the stock — alpha is just the
+            thesis&apos;s entry date, same as the stock, so alpha is just the
             stock&apos;s indexed return minus the benchmark&apos;s.
           </p>
           <p>

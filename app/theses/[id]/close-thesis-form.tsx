@@ -57,7 +57,7 @@ export function CloseThesisForm({ thesisId }: { thesisId: number }) {
       </div>
       <div>
         <label className="text-sm text-muted">
-          What happened — right for the stated reason, right by accident, or wrong?
+          What happened: right for the stated reason, right by accident, or wrong?
         </label>
         <textarea
           name="postMortem"

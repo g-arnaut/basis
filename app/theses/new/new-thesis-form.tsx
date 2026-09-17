@@ -141,7 +141,7 @@ export function NewThesisForm({ sectorEtfs }: { sectorEtfs: SectorEtf[] }) {
 
         <FormSection step="03" title="What would prove this wrong">
           <p className="text-sm text-muted">
-            Falsifiable conditions — if these happen, the thesis is wrong.
+            Falsifiable conditions: if these happen, the thesis is wrong.
           </p>
           <div className="space-y-2">
             {killCriteria.map((_, i) => (

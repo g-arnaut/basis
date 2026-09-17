@@ -87,7 +87,7 @@ export default async function Home() {
         Right or wrong, measured against the market.
       </h1>
       <p className="mt-4 max-w-md leading-relaxed text-muted">
-        Equity research notes, and a public record of every call in them —
+        Equity research notes, and a public record of every call in them,
         each one held to its sector and the S&amp;P 500 over exactly the
         period it was open.
       </p>

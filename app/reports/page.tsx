@@ -22,7 +22,7 @@ export default async function ReportsPage() {
           </Link>
         )}
       </div>
-      <p className="mt-2 text-muted">Deeper work behind the calls — financials, ratios, and the case.</p>
+      <p className="mt-2 text-muted">Deeper work behind the calls: financials, ratios, and the case.</p>
 
       {reports.length === 0 ? (
         <div className="mt-16 border-y border-rule py-14 text-center text-muted">

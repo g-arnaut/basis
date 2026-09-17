@@ -7,11 +7,11 @@ const points: { title: string; body: string }[] = [
   },
   {
     title: "Every thesis states its kill criteria upfront.",
-    body: "Specific, falsifiable conditions — written when the thesis opens, not added after the fact once something's gone wrong. If a condition is met, it's checked off and dated on the page.",
+    body: "Specific, falsifiable conditions, written when the thesis opens and not added after the fact once something's gone wrong. If a condition is met, it's checked off and dated on the page.",
   },
   {
     title: "Performance is measured against two benchmarks, not one.",
-    body: "Every position gets a sector ETF and the S&P 500, indexed to 100 at entry, same as the stock. Alpha is the stock's indexed return minus the benchmark's — over exactly the period held, not since some arbitrary start date.",
+    body: "Every position gets a sector ETF and the S&P 500, indexed to 100 at entry, same as the stock. Alpha is the stock's indexed return minus the benchmark's, over exactly the period held and not since some arbitrary start date.",
   },
   {
     title: "Prices update once a day, not live.",
@@ -23,7 +23,7 @@ const points: { title: string; body: string }[] = [
   },
   {
     title: "Closing a position requires saying what happened.",
-    body: "Not just an exit price — a real reflection on whether the thesis played out, and if not, why.",
+    body: "Not just an exit price, but a real reflection on whether the thesis played out, and if not, why.",
   },
 ];
 

@@ -23,7 +23,7 @@ const plexMono = IBM_Plex_Mono({
 export const metadata: Metadata = {
   title: "Basis",
   description:
-    "Equity research notes and a public record of every call — each one measured against its sector and the market over exactly the period it was held.",
+    "Equity research notes and a public record of every call, each one measured against its sector and the market over exactly the period it was held.",
 };
 
 function Mark() {
