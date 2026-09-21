@@ -7,6 +7,7 @@ import { PerformanceChart } from "./performance-chart";
 import { KillCriteriaList } from "./kill-criteria";
 import { Journal } from "./journal";
 import { CloseThesisForm } from "./close-thesis-form";
+import { PricesAsOf } from "@/app/prices-as-of";
 
 // Prices change daily — never freeze this page at build time.
 export const dynamic = "force-dynamic";
@@ -54,25 +55,18 @@ export default async function ThesisPage({
   const journalEntries = await getJournalEntries(thesisId);
   const admin = await isAdmin();
 
-  const points = [
-    {
-      date: thesis.entryDate,
-      stockPrice: Number(thesis.entryPrice),
-      sectorEtfPrice: null,
-      sp500Price: null,
-    },
-    ...history.map((h) => ({
-      date: h.date,
-      stockPrice: Number(h.stockPrice),
-      sectorEtfPrice: h.sectorEtfPrice != null ? Number(h.sectorEtfPrice) : null,
-      sp500Price: h.sp500Price != null ? Number(h.sp500Price) : null,
-    })),
-  ];
+  const points = history.map((h) => ({
+    date: h.date,
+    stockPrice: Number(h.stockPrice),
+    sectorEtfPrice: h.sectorEtfPrice != null ? Number(h.sectorEtfPrice) : null,
+    sp500Price: h.sp500Price != null ? Number(h.sp500Price) : null,
+  }));
   const indexed = indexPriceSeries(points);
   const alpha = currentAlpha(indexed);
   const latestPrice = history.length > 0 ? Number(history[history.length - 1].stockPrice) : Number(thesis.entryPrice);
   const rawReturn = ((latestPrice - Number(thesis.entryPrice)) / Number(thesis.entryPrice)) * 100;
   const toTarget = ((Number(thesis.targetPrice) - latestPrice) / latestPrice) * 100;
+  const latestPriceDate = history.length > 0 ? history[history.length - 1].date : null;
 
   return (
     <main className="mx-auto w-full max-w-4xl px-6 py-14">
@@ -101,6 +95,9 @@ export default async function ThesisPage({
           tickerLabel={thesis.ticker}
           sectorLabel={thesis.sectorEtf?.ticker ?? null}
         />
+        <div className="mt-2">
+          <PricesAsOf date={latestPriceDate} />
+        </div>
       </div>
 
       <div className="mt-10 grid grid-cols-1 gap-10 md:grid-cols-[1fr_260px]">

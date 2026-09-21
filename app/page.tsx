@@ -5,6 +5,7 @@ import { indexPriceSeries, currentAlpha } from "@/lib/performance";
 import { isAdmin } from "@/lib/auth";
 import { ThesisList } from "./thesis-list";
 import { HowMeasured } from "./how-measured";
+import { PricesAsOf } from "./prices-as-of";
 
 // Prices change daily — never freeze this page at build time.
 export const dynamic = "force-dynamic";
@@ -27,20 +28,12 @@ export default async function Home() {
   const rows = await Promise.all(
     allTheses.map(async (thesis) => {
       const history = await getPriceHistory(thesis.id);
-      const points = [
-        {
-          date: thesis.entryDate,
-          stockPrice: Number(thesis.entryPrice),
-          sectorEtfPrice: null,
-          sp500Price: null,
-        },
-        ...history.map((h) => ({
-          date: h.date,
-          stockPrice: Number(h.stockPrice),
-          sectorEtfPrice: h.sectorEtfPrice != null ? Number(h.sectorEtfPrice) : null,
-          sp500Price: h.sp500Price != null ? Number(h.sp500Price) : null,
-        })),
-      ];
+      const points = history.map((h) => ({
+        date: h.date,
+        stockPrice: Number(h.stockPrice),
+        sectorEtfPrice: h.sectorEtfPrice != null ? Number(h.sectorEtfPrice) : null,
+        sp500Price: h.sp500Price != null ? Number(h.sp500Price) : null,
+      }));
       const indexed = indexPriceSeries(points);
       const alpha = currentAlpha(indexed);
       const latestPrice =
@@ -61,9 +54,16 @@ export default async function Home() {
         alphaVsSector: alpha.vsSector,
         alphaVsSp500: alpha.vsSp500,
         sparkline: indexed.map((p) => p.stock),
+        latestPriceDate: history.length > 0 ? history[history.length - 1].date : null,
       };
     })
   );
+
+  const latestPriceDate = rows.reduce<string | null>((latest, r) => {
+    if (!r.latestPriceDate) return latest;
+    if (!latest || r.latestPriceDate > latest) return r.latestPriceDate;
+    return latest;
+  }, null);
 
   const reports = await listReports();
 
@@ -94,7 +94,10 @@ export default async function Home() {
 
       {rows.length > 0 && (
         <>
-          <div className="font-data mt-10 grid grid-cols-2 divide-x divide-y divide-rule border border-rule sm:grid-cols-4 sm:divide-y-0">
+          <div className="mt-6">
+            <PricesAsOf date={latestPriceDate} />
+          </div>
+          <div className="font-data mt-4 grid grid-cols-2 divide-x divide-y divide-rule border border-rule sm:grid-cols-4 sm:divide-y-0">
             <div className="p-4">
               <p className={`text-2xl font-medium ${tone(avgAlpha)}`}>{formatPct(avgAlpha)}</p>
               <p className="mt-0.5 text-xs text-muted">average, vs S&amp;P</p>

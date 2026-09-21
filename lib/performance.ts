@@ -52,3 +52,22 @@ export function currentAlpha(indexed: IndexedPoint[]): {
     vsSp500: latest.sp500 != null ? stockReturn - (latest.sp500 - 100) : null,
   };
 }
+
+// Weekday count between a logged price date and now, ignoring market
+// holidays (the app has no holiday calendar, so this matches the cron's own
+// weekdays-only schedule rather than pretending to be more precise than it
+// is). Used to flag stale prices, not to compute anything financial.
+export function tradingDaysSince(dateStr: string): number {
+  const start = new Date(`${dateStr}T00:00:00Z`);
+  const now = new Date();
+  const today = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()));
+
+  let count = 0;
+  const cursor = new Date(start);
+  while (cursor < today) {
+    cursor.setUTCDate(cursor.getUTCDate() + 1);
+    const day = cursor.getUTCDay();
+    if (day !== 0 && day !== 6) count++;
+  }
+  return count;
+}

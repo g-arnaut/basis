@@ -7,6 +7,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { z } from "zod";
 import { requireAdmin } from "@/lib/auth";
+import { fetchStooqPrices } from "@/lib/stooq";
 
 const killCriterionSchema = z.object({
   condition: z.string().min(1),
@@ -117,6 +118,12 @@ export async function createThesis(formData: FormData) {
     where: eq(benchmarks.ticker, "SPY"),
   });
 
+  const sectorEtf = parsed.sectorEtfId
+    ? await db.query.benchmarks.findFirst({
+        where: eq(benchmarks.id, parsed.sectorEtfId),
+      })
+    : null;
+
   const [created] = await db
     .insert(theses)
     .values({
@@ -142,6 +149,32 @@ export async function createThesis(formData: FormData) {
     thesisId: created.id,
     entryType: "initiation",
     content: `Thesis opened at $${parsed.entryPrice.toFixed(2)}, target $${parsed.targetPrice.toFixed(2)}.`,
+  });
+
+  // Seed the entry-date price_history row now, not just via the next
+  // day's cron run — indexPriceSeries indexes off the *first* point in
+  // history, so without a real benchmark price on day one, "vs sector"
+  // and "vs S&P" have no base to index from and stay blank forever, even
+  // after later rows come in. The stock leg stays exactly what was
+  // entered above; only the benchmark legs are fetched here.
+  const benchmarkTickers = [sectorEtf?.ticker, sp500?.ticker].filter(
+    (t): t is string => Boolean(t)
+  );
+  const benchmarkPrices =
+    benchmarkTickers.length > 0 ? await fetchStooqPrices(benchmarkTickers) : {};
+
+  await db.insert(priceHistory).values({
+    thesisId: created.id,
+    date: parsed.entryDate,
+    stockPrice: parsed.entryPrice.toFixed(4),
+    sectorEtfPrice:
+      sectorEtf && benchmarkPrices[sectorEtf.ticker] != null
+        ? benchmarkPrices[sectorEtf.ticker]!.toFixed(4)
+        : null,
+    sp500Price:
+      sp500 && benchmarkPrices[sp500.ticker] != null
+        ? benchmarkPrices[sp500.ticker]!.toFixed(4)
+        : null,
   });
 
   revalidatePath("/");

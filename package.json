@@ -10,7 +10,8 @@
     "db:generate": "drizzle-kit generate",
     "db:push": "drizzle-kit push",
     "db:studio": "drizzle-kit studio",
-    "db:seed": "tsx db/seed.ts"
+    "db:seed": "tsx db/seed.ts",
+    "db:backfill-entry-prices": "tsx db/backfill-entry-prices.ts"
   },
   "dependencies": {
     "@vercel/blob": "^2.8.0",
