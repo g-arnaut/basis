@@ -1,12 +1,13 @@
 import { db } from "@/db";
 import { theses, priceHistory, benchmarks } from "@/db/schema";
 import { eq } from "drizzle-orm";
-import { fetchStooqPrices } from "@/lib/stooq";
+import { fetchQuotes } from "@/lib/fmp";
 import { NextResponse } from "next/server";
 
 // Vercel Cron calls this once a day (see vercel.json). It:
 // 1. finds every open thesis
-// 2. fetches today's price for the stock + its sector ETF + SPY
+// 2. fetches today's price for the stock + its sector ETF + SPY (via FMP -
+//    Stooq's free quote endpoint stopped working, see fetchQuotes in lib/fmp.ts)
 // 3. upserts one price_history row per thesis for today
 //
 // Protected by CRON_SECRET so this can't be triggered by anyone poking the
@@ -36,7 +37,7 @@ export async function GET(request: Request) {
     if (t.sp500Benchmark) allTickers.add(t.sp500Benchmark.ticker);
   }
 
-  const prices = await fetchStooqPrices([...allTickers]);
+  const prices = await fetchQuotes([...allTickers]);
   const today = new Date().toISOString().slice(0, 10);
 
   const results: { thesisId: number; ticker: string; ok: boolean }[] = [];

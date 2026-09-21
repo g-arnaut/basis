@@ -87,3 +87,43 @@ export async function fetchCompanyFinancials(ticker: string): Promise<FetchedFin
     raw: { income: incomeRes, balance: balanceRes, cashFlow: cashFlowRes, ratios: ratiosRes },
   };
 }
+
+// Latest quote for one or more tickers, used for daily price tracking
+// (replaces the old Stooq integration, whose free CSV endpoint stopped
+// working — see FMP's /quote endpoint docs). Deliberately never throws:
+// callers (the price cron, thesis creation) treat a missing price as
+// "log it as null and move on," not a hard failure, same contract the
+// old fetchStooqPrices had.
+export async function fetchQuotes(
+  tickers: string[]
+): Promise<Record<string, number | null>> {
+  const result: Record<string, number | null> = {};
+  for (const t of tickers) result[t.toUpperCase()] = null;
+  if (tickers.length === 0) return result;
+
+  const key = process.env.FMP_API_KEY;
+  if (!key) return result;
+
+  try {
+    const symbols = tickers.map((t) => t.toUpperCase()).join(",");
+    const url = `${FMP_BASE}/quote/${symbols}?apikey=${key}`;
+    const res = await fetch(url, { cache: "no-store" });
+    if (!res.ok) return result;
+
+    const data: unknown = await res.json();
+    if (!Array.isArray(data)) return result;
+
+    for (const row of data) {
+      if (typeof row !== "object" || row === null) continue;
+      const symbol = (row as Record<string, unknown>).symbol;
+      const price = (row as Record<string, unknown>).price;
+      if (typeof symbol === "string" && typeof price === "number" && Number.isFinite(price)) {
+        result[symbol.toUpperCase()] = price;
+      }
+    }
+  } catch {
+    // best-effort — leave everything null rather than throw
+  }
+
+  return result;
+}

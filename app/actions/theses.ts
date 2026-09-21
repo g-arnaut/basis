@@ -7,7 +7,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { z } from "zod";
 import { requireAdmin } from "@/lib/auth";
-import { fetchStooqPrices } from "@/lib/stooq";
+import { fetchQuotes } from "@/lib/fmp";
 
 const killCriterionSchema = z.object({
   condition: z.string().min(1),
@@ -161,7 +161,7 @@ export async function createThesis(formData: FormData) {
     (t): t is string => Boolean(t)
   );
   const benchmarkPrices =
-    benchmarkTickers.length > 0 ? await fetchStooqPrices(benchmarkTickers) : {};
+    benchmarkTickers.length > 0 ? await fetchQuotes(benchmarkTickers) : {};
 
   await db.insert(priceHistory).values({
     thesisId: created.id,

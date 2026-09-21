@@ -2,7 +2,7 @@ import "dotenv/config";
 import { db } from "./index";
 import { theses, benchmarks, priceHistory } from "./schema";
 import { eq, and } from "drizzle-orm";
-import { fetchStooqPrices } from "../lib/stooq";
+import { fetchQuotes } from "../lib/fmp";
 
 // One-off: for any thesis created before the entry-date price_history row
 // was seeded at creation time, insert that missing row now so alpha has a
@@ -28,7 +28,7 @@ async function main() {
     const tickers = [t.sectorEtf?.ticker, t.sp500Benchmark?.ticker].filter(
       (x): x is string => Boolean(x)
     );
-    const prices = tickers.length > 0 ? await fetchStooqPrices(tickers) : {};
+    const prices = tickers.length > 0 ? await fetchQuotes(tickers) : {};
 
     await db.insert(priceHistory).values({
       thesisId: t.id,
@@ -45,9 +45,9 @@ async function main() {
     });
 
     console.log(
-      `Backfilled ${t.ticker} (thesis ${t.id}), entry date ${t.entryDate} — ` +
-        `note this uses *today's* benchmark price, not the historical price on ` +
-        `that date, since Stooq's free quote endpoint only returns the latest quote.`
+      `Backfilled ${t.ticker} (thesis ${t.id}), entry date ${t.entryDate}. ` +
+        `Note this uses today's benchmark price, not the historical price on ` +
+        `that date, since this only fetches a latest quote, not a historical one.`
     );
     backfilled++;
   }
