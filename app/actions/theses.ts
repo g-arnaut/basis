@@ -2,7 +2,7 @@
 
 import { db } from "@/db";
 import { theses, benchmarks, journalEntries, priceHistory } from "@/db/schema";
-import { desc, eq } from "drizzle-orm";
+import { and, desc, eq } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { z } from "zod";
@@ -113,6 +113,24 @@ export async function createThesis(formData: FormData) {
     entryDate: formData.get("entryDate"),
     targetPrice: formData.get("targetPrice"),
   });
+
+  // Guards against the double-submit case (e.g. a slow request plus an
+  // impatient second click before the button disables) - a real duplicate
+  // thesis, not two independent ones, always shares both ticker and entry
+  // date, so that pair is the check rather than a broader "same ticker"
+  // block that would also stop someone legitimately re-opening a position.
+  const duplicate = await db.query.theses.findFirst({
+    where: and(
+      eq(theses.ticker, parsed.ticker),
+      eq(theses.entryDate, parsed.entryDate),
+      eq(theses.status, "open")
+    ),
+  });
+  if (duplicate) {
+    throw new Error(
+      `An open thesis for ${parsed.ticker} entered on ${parsed.entryDate} already exists.`
+    );
+  }
 
   const sp500 = await db.query.benchmarks.findFirst({
     where: eq(benchmarks.ticker, "SPY"),

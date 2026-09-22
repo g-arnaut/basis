@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useFormStatus } from "react-dom";
 import Link from "next/link";
 import { createThesis } from "@/app/actions/theses";
 
@@ -30,9 +31,26 @@ function FormSection({
   );
 }
 
+// useFormStatus only reports the pending state of the nearest ancestor
+// <form>, so it has to live in a component rendered inside it - reading it
+// in NewThesisForm itself would always report the form's default (not
+// pending) status.
+function SubmitButton() {
+  const { pending } = useFormStatus();
+
+  return (
+    <button
+      type="submit"
+      disabled={pending}
+      className="mt-10 w-full rounded-sm bg-ink py-3 text-paper disabled:opacity-50"
+    >
+      {pending ? "Saving…" : "Open thesis"}
+    </button>
+  );
+}
+
 export function NewThesisForm({ sectorEtfs }: { sectorEtfs: SectorEtf[] }) {
   const [killCriteria, setKillCriteria] = useState<string[]>([""]);
-  const [pending, setPending] = useState(false);
 
   return (
     <main className="mx-auto w-full max-w-2xl px-6 py-14">
@@ -41,13 +59,7 @@ export function NewThesisForm({ sectorEtfs }: { sectorEtfs: SectorEtf[] }) {
       </Link>
       <h1 className="mt-4 text-3xl font-bold tracking-tight">New thesis</h1>
 
-      <form
-        action={async (formData) => {
-          setPending(true);
-          await createThesis(formData);
-        }}
-        className="mt-10"
-      >
+      <form action={createThesis} className="mt-10">
         <FormSection step="01" title="The position">
           <div className="grid grid-cols-2 gap-6">
             <div>
@@ -178,13 +190,7 @@ export function NewThesisForm({ sectorEtfs }: { sectorEtfs: SectorEtf[] }) {
           </button>
         </FormSection>
 
-        <button
-          type="submit"
-          disabled={pending}
-          className="mt-10 w-full rounded-sm bg-ink py-3 text-paper disabled:opacity-50"
-        >
-          {pending ? "Saving…" : "Open thesis"}
-        </button>
+        <SubmitButton />
       </form>
     </main>
   );
