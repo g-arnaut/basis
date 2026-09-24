@@ -1,10 +1,14 @@
 import { tradingDaysSince } from "@/lib/performance";
 
+// Same fix as thesis-list.tsx's fmtDate: without timeZone: "UTC" here,
+// toLocaleDateString renders in the viewer's local zone, silently showing
+// the previous calendar day for anyone west of UTC.
 function formatDate(dateStr: string) {
   return new Date(`${dateStr}T00:00:00Z`).toLocaleDateString("en-US", {
     day: "numeric",
     month: "short",
     year: "numeric",
+    timeZone: "UTC",
   });
 }
 

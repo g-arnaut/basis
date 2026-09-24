@@ -39,8 +39,18 @@ function heldFor(entryDate: string, exitDate: string | null) {
   return `${months}mo`;
 }
 
+// entryDate is a plain calendar date with no time component ("2026-09-22"),
+// which JS parses as UTC midnight - but toLocaleDateString formats in the
+// *viewer's* local timezone by default, so anyone west of UTC would see it
+// silently shift back a day. Pinning timeZone: "UTC" makes the displayed
+// date always match the stored one, everywhere.
 function fmtDate(d: string) {
-  return new Date(d).toLocaleDateString("en-US", { day: "numeric", month: "short", year: "numeric" });
+  return new Date(d).toLocaleDateString("en-US", {
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+    timeZone: "UTC",
+  });
 }
 
 function Sparkline({ values }: { values: number[] }) {
