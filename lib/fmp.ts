@@ -99,3 +99,30 @@ export async function fetchCompanyFinancials(ticker: string): Promise<FetchedFin
     },
   };
 }
+
+// True historical close for one ticker on one date - confirmed free for
+// SPY and individual stocks like AAPL, but FMP blocks an unpredictable set
+// of symbols (most sector ETFs, but also some ordinary stocks like MCD)
+// behind a "Premium Query Parameter" error even on this endpoint. Callers
+// should treat a null return as "try a latest-quote approximation instead"
+// (see fetchQuotes in lib/finnhub.ts), not as a hard failure.
+export async function fetchHistoricalPrice(
+  ticker: string,
+  date: string
+): Promise<number | null> {
+  const key = process.env.FMP_API_KEY;
+  if (!key) return null;
+
+  try {
+    const symbol = ticker.toUpperCase();
+    const url = `${FMP_BASE}/historical-price-eod/light?symbol=${symbol}&from=${date}&to=${date}&apikey=${key}`;
+    const res = await fetch(url, { cache: "no-store" });
+    if (!res.ok) return null;
+
+    const data: unknown = await res.json();
+    const row = firstOf(data);
+    return num(row, "price");
+  } catch {
+    return null;
+  }
+}

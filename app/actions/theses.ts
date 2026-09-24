@@ -7,7 +7,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { z } from "zod";
 import { requireAdmin } from "@/lib/auth";
-import { fetchQuotes } from "@/lib/finnhub";
+import { fetchBenchmarkPricesForDate } from "@/lib/entry-benchmarks";
 
 const killCriterionSchema = z.object({
   condition: z.string().min(1),
@@ -174,12 +174,16 @@ export async function createThesis(formData: FormData) {
   // history, so without a real benchmark price on day one, "vs sector"
   // and "vs S&P" have no base to index from and stay blank forever, even
   // after later rows come in. The stock leg stays exactly what was
-  // entered above; only the benchmark legs are fetched here.
+  // entered above; only the benchmark legs are fetched here - preferring
+  // a true historical close for the entry date over a latest-quote
+  // approximation, since the thesis form allows a backdated entry date.
   const benchmarkTickers = [sectorEtf?.ticker, sp500?.ticker].filter(
     (t): t is string => Boolean(t)
   );
   const benchmarkPrices =
-    benchmarkTickers.length > 0 ? await fetchQuotes(benchmarkTickers) : {};
+    benchmarkTickers.length > 0
+      ? await fetchBenchmarkPricesForDate(benchmarkTickers, parsed.entryDate)
+      : {};
 
   await db.insert(priceHistory).values({
     thesisId: created.id,

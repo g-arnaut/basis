@@ -2,13 +2,15 @@ import "dotenv/config";
 import { db } from "./index";
 import { theses, benchmarks, priceHistory } from "./schema";
 import { eq, and } from "drizzle-orm";
-import { fetchQuotes } from "../lib/finnhub";
+import { fetchBenchmarkPricesForDate } from "../lib/entry-benchmarks";
 
 // One-off: for any thesis whose entry-date price_history row is missing
 // entirely, or exists but has a null sector/SPY price (e.g. it was created
 // before a working price provider was configured), fetch real benchmark
 // prices now so alpha has a real base to index from instead of showing
-// "—" forever. Safe to re-run — skips rows that are already complete.
+// "—" forever. Prefers a true historical close for the entry date over a
+// latest-quote approximation (see lib/entry-benchmarks.ts). Safe to
+// re-run — skips rows that are already complete.
 async function main() {
   const allTheses = await db.query.theses.findMany({
     with: { sectorEtf: true, sp500Benchmark: true },
@@ -29,7 +31,8 @@ async function main() {
     const tickers = [t.sectorEtf?.ticker, t.sp500Benchmark?.ticker].filter(
       (x): x is string => Boolean(x)
     );
-    const prices = tickers.length > 0 ? await fetchQuotes(tickers) : {};
+    const prices =
+      tickers.length > 0 ? await fetchBenchmarkPricesForDate(tickers, t.entryDate) : {};
 
     const sectorEtfPrice =
       t.sectorEtf && prices[t.sectorEtf.ticker] != null
@@ -57,8 +60,9 @@ async function main() {
 
     console.log(
       `Backfilled ${t.ticker} (thesis ${t.id}), entry date ${t.entryDate}. ` +
-        `Note this uses today's benchmark price, not the historical price on ` +
-        `that date, since this only fetches a latest quote, not a historical one.`
+        `Uses a real historical close where FMP allows it, otherwise falls ` +
+        `back to today's quote as an approximation for whichever benchmark ` +
+        `is blocked - check the value if the entry date isn't recent.`
     );
     backfilled++;
   }
