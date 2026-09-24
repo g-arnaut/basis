@@ -100,11 +100,11 @@ export default async function Home() {
           <div className="font-data mt-4 grid grid-cols-2 divide-x divide-y divide-rule border border-rule sm:grid-cols-4 sm:divide-y-0">
             <div className="p-4">
               <p className={`text-2xl font-medium ${tone(avgAlpha)}`}>{formatPct(avgAlpha)}</p>
-              <p className="mt-0.5 text-xs text-muted">average, vs S&amp;P</p>
+              <p className="mt-0.5 text-xs text-muted">average alpha, vs S&amp;P</p>
             </div>
             <div className="p-4">
               <p className={`text-2xl font-medium ${tone(medianAlpha)}`}>{formatPct(medianAlpha)}</p>
-              <p className="mt-0.5 text-xs text-muted">median, vs S&amp;P</p>
+              <p className="mt-0.5 text-xs text-muted">median alpha, vs S&amp;P</p>
             </div>
             <div className="p-4">
               <p className="text-2xl font-medium text-ink">

@@ -108,8 +108,12 @@ function Row({ row }: { row: Row }) {
             ${row.entryPrice.toFixed(2)} → ${row.latestPrice.toFixed(2)}
           </span>
           <span className={toneClass(row.rawReturn)}>Return {formatPct(row.rawReturn)}</span>
-          <span className={toneClass(row.alphaVsSector)}>vs sector {formatPct(row.alphaVsSector)}</span>
-          <span className={toneClass(row.alphaVsSp500)}>vs S&amp;P {formatPct(row.alphaVsSp500)}</span>
+          <span className={toneClass(row.alphaVsSector)}>
+            Alpha vs sector {formatPct(row.alphaVsSector)}
+          </span>
+          <span className={toneClass(row.alphaVsSp500)}>
+            Alpha vs S&amp;P {formatPct(row.alphaVsSp500)}
+          </span>
           <span className="text-muted">Held {heldFor(row.entryDate, row.exitDate)}</span>
         </p>
       </div>

@@ -130,12 +130,12 @@ export default async function ThesisPage({
               tone={rawReturn >= 0 ? "gain" : "loss"}
             />
             <StatRow
-              label="vs sector"
+              label="Alpha vs sector"
               value={formatPct(alpha.vsSector)}
               tone={(alpha.vsSector ?? 0) >= 0 ? "gain" : "loss"}
             />
             <StatRow
-              label="vs S&P 500"
+              label="Alpha vs S&P 500"
               value={formatPct(alpha.vsSp500)}
               tone={(alpha.vsSp500 ?? 0) >= 0 ? "gain" : "loss"}
             />
