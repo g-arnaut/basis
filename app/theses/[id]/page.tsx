@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getThesis, getPriceHistory, getJournalEntries } from "@/app/actions/theses";
-import { indexPriceSeries, currentAlpha } from "@/lib/performance";
+import { indexPriceSeries, benchmarkReturns } from "@/lib/performance";
 import { isAdmin } from "@/lib/auth";
 import { PerformanceChart } from "./performance-chart";
 import { KillCriteriaList } from "./kill-criteria";
@@ -62,7 +62,7 @@ export default async function ThesisPage({
     sp500Price: h.sp500Price != null ? Number(h.sp500Price) : null,
   }));
   const indexed = indexPriceSeries(points);
-  const alpha = currentAlpha(indexed);
+  const benchmarks = benchmarkReturns(indexed);
   const latestPrice = history.length > 0 ? Number(history[history.length - 1].stockPrice) : Number(thesis.entryPrice);
   const rawReturn = ((latestPrice - Number(thesis.entryPrice)) / Number(thesis.entryPrice)) * 100;
   const toTarget = ((Number(thesis.targetPrice) - latestPrice) / latestPrice) * 100;
@@ -130,14 +130,14 @@ export default async function ThesisPage({
               tone={rawReturn >= 0 ? "gain" : "loss"}
             />
             <StatRow
-              label="Alpha vs sector"
-              value={formatPct(alpha.vsSector)}
-              tone={(alpha.vsSector ?? 0) >= 0 ? "gain" : "loss"}
+              label="Sector return"
+              value={formatPct(benchmarks.sector)}
+              tone={(benchmarks.sector ?? 0) >= 0 ? "gain" : "loss"}
             />
             <StatRow
-              label="Alpha vs S&P 500"
-              value={formatPct(alpha.vsSp500)}
-              tone={(alpha.vsSp500 ?? 0) >= 0 ? "gain" : "loss"}
+              label="S&P 500 return"
+              value={formatPct(benchmarks.sp500)}
+              tone={(benchmarks.sp500 ?? 0) >= 0 ? "gain" : "loss"}
             />
             <StatRow label="To target" value={formatPct(toTarget)} />
             <StatRow

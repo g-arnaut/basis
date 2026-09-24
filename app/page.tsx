@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { listAllTheses, getPriceHistory } from "@/app/actions/theses";
 import { listReports } from "@/app/actions/reports";
-import { indexPriceSeries, currentAlpha } from "@/lib/performance";
+import { indexPriceSeries, currentAlpha, benchmarkReturns } from "@/lib/performance";
 import { isAdmin } from "@/lib/auth";
 import { ThesisList } from "./thesis-list";
 import { HowMeasured } from "./how-measured";
@@ -36,6 +36,7 @@ export default async function Home() {
       }));
       const indexed = indexPriceSeries(points);
       const alpha = currentAlpha(indexed);
+      const benchmarks = benchmarkReturns(indexed);
       const latestPrice =
         history.length > 0 ? Number(history[history.length - 1].stockPrice) : Number(thesis.entryPrice);
       const rawReturn = ((latestPrice - Number(thesis.entryPrice)) / Number(thesis.entryPrice)) * 100;
@@ -53,6 +54,8 @@ export default async function Home() {
         rawReturn,
         alphaVsSector: alpha.vsSector,
         alphaVsSp500: alpha.vsSp500,
+        sectorReturn: benchmarks.sector,
+        sp500Return: benchmarks.sp500,
         sparkline: indexed.map((p) => p.stock),
         latestPriceDate: history.length > 0 ? history[history.length - 1].date : null,
       };

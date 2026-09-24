@@ -16,6 +16,8 @@ type Row = {
   rawReturn: number;
   alphaVsSector: number | null;
   alphaVsSp500: number | null;
+  sectorReturn: number | null;
+  sp500Return: number | null;
   sparkline: number[];
 };
 
@@ -108,12 +110,8 @@ function Row({ row }: { row: Row }) {
             ${row.entryPrice.toFixed(2)} → ${row.latestPrice.toFixed(2)}
           </span>
           <span className={toneClass(row.rawReturn)}>Return {formatPct(row.rawReturn)}</span>
-          <span className={toneClass(row.alphaVsSector)}>
-            Alpha vs sector {formatPct(row.alphaVsSector)}
-          </span>
-          <span className={toneClass(row.alphaVsSp500)}>
-            Alpha vs S&amp;P {formatPct(row.alphaVsSp500)}
-          </span>
+          <span className={toneClass(row.sectorReturn)}>Sector {formatPct(row.sectorReturn)}</span>
+          <span className={toneClass(row.sp500Return)}>S&amp;P {formatPct(row.sp500Return)}</span>
           <span className="text-muted">Held {heldFor(row.entryDate, row.exitDate)}</span>
         </p>
       </div>

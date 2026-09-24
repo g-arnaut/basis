@@ -53,6 +53,23 @@ export function currentAlpha(indexed: IndexedPoint[]): {
   };
 }
 
+// The benchmarks' own indexed return over the same period, so the UI can
+// show "stock X%, sector Y%, S&P Z%" side by side and let the reader do
+// the alpha subtraction themselves, instead of only showing the already-
+// computed differential (which reads ambiguously - "vs sector +1.3%" can
+// look like it's describing the sector's own move, not an outperformance).
+export function benchmarkReturns(indexed: IndexedPoint[]): {
+  sector: number | null;
+  sp500: number | null;
+} {
+  if (indexed.length === 0) return { sector: null, sp500: null };
+  const latest = indexed[indexed.length - 1];
+  return {
+    sector: latest.sectorEtf != null ? latest.sectorEtf - 100 : null,
+    sp500: latest.sp500 != null ? latest.sp500 - 100 : null,
+  };
+}
+
 // Weekday count between a logged price date and now, ignoring market
 // holidays (the app has no holiday calendar, so this matches the cron's own
 // weekdays-only schedule rather than pretending to be more precise than it
