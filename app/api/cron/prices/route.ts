@@ -1,13 +1,13 @@
 import { db } from "@/db";
 import { theses, priceHistory, benchmarks } from "@/db/schema";
 import { eq } from "drizzle-orm";
-import { fetchQuotes } from "@/lib/fmp";
+import { fetchQuotes } from "@/lib/finnhub";
 import { NextResponse } from "next/server";
 
 // Vercel Cron calls this once a day (see vercel.json). It:
 // 1. finds every open thesis
-// 2. fetches today's price for the stock + its sector ETF + SPY (via FMP -
-//    Stooq's free quote endpoint stopped working, see fetchQuotes in lib/fmp.ts)
+// 2. fetches today's price for the stock + its sector ETF + SPY (via
+//    Finnhub - see lib/finnhub.ts for why, not Stooq or FMP)
 // 3. upserts one price_history row per thesis for today
 //
 // Protected by CRON_SECRET so this can't be triggered by anyone poking the

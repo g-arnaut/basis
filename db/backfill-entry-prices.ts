@@ -2,7 +2,7 @@ import "dotenv/config";
 import { db } from "./index";
 import { theses, benchmarks, priceHistory } from "./schema";
 import { eq, and } from "drizzle-orm";
-import { fetchQuotes } from "../lib/fmp";
+import { fetchQuotes } from "../lib/finnhub";
 
 // One-off: for any thesis created before the entry-date price_history row
 // was seeded at creation time, insert that missing row now so alpha has a

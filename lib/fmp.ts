@@ -1,12 +1,13 @@
-// Pulls a company's latest financial statement highlights from Financial
-// Modeling Prep. Built against FMP's v3 REST API as documented, but not
-// tested against a live key from this environment (no network access to
-// external APIs here) — field names below are my best-effort mapping of
-// their documented response shape. If a number comes back null after a
-// real fetch, check `raw` (stored as rawFinancials on the report) for the
-// actual field names before assuming the pull failed outright.
+// Pulls financial statement highlights from Financial Modeling Prep, for
+// company reports (daily price quotes live in lib/finnhub.ts instead - see
+// that file for why). Uses FMP's current "stable" API
+// (financialmodelingprep.com/stable/..., symbol passed as a query param) —
+// their older /api/v3/ paths are a legacy tier not available to accounts
+// created after Aug 2025 and return a hard "Legacy Endpoint" error,
+// confirmed by testing directly against a real key. Field names below are
+// also confirmed against real responses, not guessed from docs.
 
-const FMP_BASE = "https://financialmodelingprep.com/api/v3";
+const FMP_BASE = "https://financialmodelingprep.com/stable";
 
 export type FetchedFinancials = {
   fiscalPeriod: string | null;
@@ -51,23 +52,28 @@ export async function fetchCompanyFinancials(ticker: string): Promise<FetchedFin
 
   const symbol = ticker.toUpperCase();
 
-  const [incomeRes, balanceRes, cashFlowRes, ratiosRes] = await Promise.all([
-    fmpGet(`/income-statement/${symbol}?limit=1`).catch((e) => ({ __error: String(e) })),
-    fmpGet(`/balance-sheet-statement/${symbol}?limit=1`).catch((e) => ({ __error: String(e) })),
-    fmpGet(`/cash-flow-statement/${symbol}?limit=1`).catch((e) => ({ __error: String(e) })),
-    fmpGet(`/ratios/${symbol}?limit=1`).catch((e) => ({ __error: String(e) })),
+  // income-statement no longer carries margin ratios (moved to `ratios`)
+  // or ROE/ROIC (moved to `key-metrics`) under the stable API — five
+  // endpoints now, not four.
+  const [incomeRes, balanceRes, cashFlowRes, ratiosRes, keyMetricsRes] = await Promise.all([
+    fmpGet(`/income-statement?symbol=${symbol}&limit=1`).catch((e) => ({ __error: String(e) })),
+    fmpGet(`/balance-sheet-statement?symbol=${symbol}&limit=1`).catch((e) => ({ __error: String(e) })),
+    fmpGet(`/cash-flow-statement?symbol=${symbol}&limit=1`).catch((e) => ({ __error: String(e) })),
+    fmpGet(`/ratios?symbol=${symbol}&limit=1`).catch((e) => ({ __error: String(e) })),
+    fmpGet(`/key-metrics?symbol=${symbol}&limit=1`).catch((e) => ({ __error: String(e) })),
   ]);
 
   const inc = firstOf(incomeRes);
   const bal = firstOf(balanceRes);
   const cf = firstOf(cashFlowRes);
   const rat = firstOf(ratiosRes);
+  const km = firstOf(keyMetricsRes);
 
   // individual endpoints tolerate partial failure (one bad endpoint
   // shouldn't blank out the rest), but if every single one failed this
   // was a total outage/bad key, not a partial pull — surface it as an
   // error instead of silently saving an all-null financials snapshot
-  if (!inc && !bal && !cf && !rat) {
+  if (!inc && !bal && !cf && !rat && !km) {
     throw new Error("FMP returned no usable data for any endpoint");
   }
 
@@ -75,55 +81,21 @@ export async function fetchCompanyFinancials(ticker: string): Promise<FetchedFin
     fiscalPeriod: (inc?.date as string) ?? null,
     revenue: num(inc, "revenue"),
     netIncome: num(inc, "netIncome"),
-    grossMargin: num(inc, "grossProfitRatio"),
-    operatingMargin: num(inc, "operatingIncomeRatio"),
-    netMargin: num(inc, "netIncomeRatio"),
+    grossMargin: num(rat, "grossProfitMargin"),
+    operatingMargin: num(rat, "operatingProfitMargin"),
+    netMargin: num(rat, "netProfitMargin"),
     freeCashFlow: num(cf, "freeCashFlow"),
     totalDebt: num(bal, "totalDebt"),
     cash: num(bal, "cashAndCashEquivalents"),
     evToEbitda: num(rat, "enterpriseValueMultiple"),
-    roe: num(rat, "returnOnEquity"),
-    roic: num(rat, "returnOnCapitalEmployed"),
-    raw: { income: incomeRes, balance: balanceRes, cashFlow: cashFlowRes, ratios: ratiosRes },
+    roe: num(km, "returnOnEquity"),
+    roic: num(km, "returnOnCapitalEmployed"),
+    raw: {
+      income: incomeRes,
+      balance: balanceRes,
+      cashFlow: cashFlowRes,
+      ratios: ratiosRes,
+      keyMetrics: keyMetricsRes,
+    },
   };
-}
-
-// Latest quote for one or more tickers, used for daily price tracking
-// (replaces the old Stooq integration, whose free CSV endpoint stopped
-// working — see FMP's /quote endpoint docs). Deliberately never throws:
-// callers (the price cron, thesis creation) treat a missing price as
-// "log it as null and move on," not a hard failure, same contract the
-// old fetchStooqPrices had.
-export async function fetchQuotes(
-  tickers: string[]
-): Promise<Record<string, number | null>> {
-  const result: Record<string, number | null> = {};
-  for (const t of tickers) result[t.toUpperCase()] = null;
-  if (tickers.length === 0) return result;
-
-  const key = process.env.FMP_API_KEY;
-  if (!key) return result;
-
-  try {
-    const symbols = tickers.map((t) => t.toUpperCase()).join(",");
-    const url = `${FMP_BASE}/quote/${symbols}?apikey=${key}`;
-    const res = await fetch(url, { cache: "no-store" });
-    if (!res.ok) return result;
-
-    const data: unknown = await res.json();
-    if (!Array.isArray(data)) return result;
-
-    for (const row of data) {
-      if (typeof row !== "object" || row === null) continue;
-      const symbol = (row as Record<string, unknown>).symbol;
-      const price = (row as Record<string, unknown>).price;
-      if (typeof symbol === "string" && typeof price === "number" && Number.isFinite(price)) {
-        result[symbol.toUpperCase()] = price;
-      }
-    }
-  } catch {
-    // best-effort — leave everything null rather than throw
-  }
-
-  return result;
 }

@@ -7,7 +7,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { z } from "zod";
 import { requireAdmin } from "@/lib/auth";
-import { fetchQuotes } from "@/lib/fmp";
+import { fetchQuotes } from "@/lib/finnhub";
 
 const killCriterionSchema = z.object({
   condition: z.string().min(1),
