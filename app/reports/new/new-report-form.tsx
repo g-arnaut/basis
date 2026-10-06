@@ -17,7 +17,7 @@ export function NewReportForm({ theses }: { theses: ThesisOption[] }) {
       <Link href="/reports" className="label text-muted hover:text-ink">
         ← Reports
       </Link>
-      <h1 className="mt-4 font-serif text-4xl font-medium tracking-tight">New report</h1>
+      <h1 className="display mt-4 text-[4.5rem]">New report</h1>
       <p className="mt-2 text-sm text-muted">
         Financials pull automatically from the ticker on save. If the pull
         fails, the report still saves with your analysis, and you can retry

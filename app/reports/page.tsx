@@ -9,12 +9,12 @@ export default async function ReportsPage() {
   const admin = await isAdmin();
 
   return (
-    <main className="mx-auto w-full max-w-3xl px-6 py-14">
-      <p className="label rise text-brass" style={{ ["--i" as string]: 0 }}>
+    <main className="px-6 pb-16 pt-12">
+      <p className="label rise text-forest" style={{ ["--i" as string]: 0 }}>
         Research
       </p>
       <div className="rise mt-3 flex items-baseline justify-between gap-4" style={{ ["--i" as string]: 1 }}>
-        <h1 className="font-serif text-4xl font-medium tracking-tight sm:text-5xl">Reports</h1>
+        <h1 className="display text-[5rem] sm:text-[7rem]">Reports</h1>
         {admin && (
           <Link href="/reports/new" className="label text-link hover:underline">
             New report +
@@ -35,7 +35,7 @@ export default async function ReportsPage() {
           )}
         </div>
       ) : (
-        <div className="mt-10 border-t border-ink/80">
+        <div className="mt-10 border-t-2 border-ink">
           {reports.map((r, i) => (
             <Link
               key={r.id}
@@ -44,12 +44,12 @@ export default async function ReportsPage() {
               className="rise group block border-b border-rule py-6 transition-colors hover:bg-surface"
             >
               <div className="flex items-baseline gap-3">
-                <span className="font-data rounded-sm border border-ink/25 px-1.5 py-0.5 text-[11px] font-medium tracking-wide">
+                <span className="display text-[2rem]">
                   {r.ticker}
                 </span>
                 {r.thesisId && <span className="label text-muted">Linked position</span>}
               </div>
-              <h2 className="mt-3 font-serif text-2xl font-medium leading-snug tracking-tight group-hover:underline">
+              <h2 className="mt-3 font-serif text-2xl font-semibold leading-snug group-hover:underline">
                 {r.title}
               </h2>
               <p className="mt-2 line-clamp-2 max-w-2xl text-sm leading-relaxed text-muted">

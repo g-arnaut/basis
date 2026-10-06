@@ -1,17 +1,19 @@
 import type { Metadata } from "next";
-import { IBM_Plex_Sans, IBM_Plex_Mono, Newsreader } from "next/font/google";
+import { Archivo, IBM_Plex_Mono, Source_Serif_4 } from "next/font/google";
 import Link from "next/link";
 import { isAdmin } from "@/lib/auth";
 import { logout } from "@/app/actions/auth";
 import { listAllTheses, getTapeData } from "@/app/actions/theses";
 import { listReports } from "@/app/actions/reports";
-import { Sidebar } from "./sidebar";
+import { MainNav } from "./main-nav";
 import "./globals.css";
 
-const plexSans = IBM_Plex_Sans({
-  variable: "--font-sans",
+// Archivo's width axis gives us a heavy condensed cut for headlines (.display)
+// and a normal-width cut for interface text.
+const archivo = Archivo({
+  variable: "--font-archivo",
   subsets: ["latin"],
-  weight: ["400", "500", "600", "700"],
+  axes: ["wdth"],
 });
 
 const plexMono = IBM_Plex_Mono({
@@ -20,8 +22,8 @@ const plexMono = IBM_Plex_Mono({
   weight: ["400", "500"],
 });
 
-const newsreader = Newsreader({
-  variable: "--font-display",
+const sourceSerif = Source_Serif_4({
+  variable: "--font-source-serif",
   subsets: ["latin"],
   style: ["normal", "italic"],
   axes: ["opsz"],
@@ -32,15 +34,6 @@ export const metadata: Metadata = {
   description:
     "Equity research notes and a public record of every call, each one measured against its sector and the market over exactly the period it was held.",
 };
-
-function Mark() {
-  return (
-    <svg width="18" height="18" viewBox="0 0 16 16" className="flex-shrink-0 text-brass" aria-hidden>
-      <rect x="0.5" y="0.5" width="15" height="15" fill="currentColor" />
-      <rect x="4" y="4" width="4" height="8" style={{ fill: "var(--color-night)" }} />
-    </svg>
-  );
-}
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
   const admin = await isAdmin();
@@ -55,24 +48,25 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   return (
     <html
       lang="en"
-      className={`${plexSans.variable} ${plexMono.variable} ${newsreader.variable} h-full antialiased`}
+      className={`${archivo.variable} ${plexMono.variable} ${sourceSerif.variable} h-full antialiased`}
     >
       <body className="flex min-h-full flex-col text-ink">
-        <header className="sticky top-0 z-20 border-b border-brass/60 bg-night text-night-text">
-          <div className="mx-auto flex w-full max-w-6xl items-center gap-6 px-6 py-3">
-            <Link href="/" className="flex items-center gap-3">
-              <Mark />
-              <span className="font-serif text-[1.35rem] font-semibold leading-none tracking-tight">
+        <header className="sticky top-0 z-20 bg-night text-night-text">
+          <div className="mx-auto flex w-full max-w-6xl items-center gap-x-8 gap-y-2 px-6 py-3.5">
+            <Link href="/" className="flex items-center gap-2.5" aria-label="Basis, home">
+              <span aria-hidden className="block h-4 w-4 bg-lime" />
+              <span className="display text-[1.7rem] uppercase leading-none tracking-[0.02em]">
                 Basis
               </span>
-              <span className="label hidden text-night-muted sm:inline">Equity research</span>
             </Link>
+
+            <MainNav equityCount={allTheses.length} reportCount={reports.length} />
 
             <div className="ml-auto flex items-center gap-5 text-sm">
               {admin ? (
                 <>
-                  <Link href="/theses/new" className={navLink}>
-                    New thesis
+                  <Link href="/theses/new" className="font-medium text-lime hover:underline">
+                    New thesis +
                   </Link>
                   <form action={logout}>
                     <button type="submit" className={navLink}>
@@ -89,9 +83,9 @@ export default async function RootLayout({ children }: { children: React.ReactNo
           </div>
 
           {tape.length > 0 && (
-            <div className="border-t border-white/10">
-              <div className="no-scrollbar font-data mx-auto flex w-full max-w-6xl items-center gap-6 overflow-x-auto whitespace-nowrap px-6 py-1.5 text-xs">
-                <span className="label flex-shrink-0 text-brass">Open, since entry</span>
+            <div className="border-t border-white/10 bg-black/30">
+              <div className="no-scrollbar font-data mx-auto flex w-full max-w-6xl items-center gap-7 overflow-x-auto whitespace-nowrap px-6 py-1.5 text-xs">
+                <span className="label flex-shrink-0 text-lime">Open · since entry</span>
                 {tape.map((t) => (
                   <span key={t.ticker} className="flex flex-shrink-0 items-baseline gap-2">
                     <span className="font-medium text-night-text">{t.ticker}</span>
@@ -110,15 +104,13 @@ export default async function RootLayout({ children }: { children: React.ReactNo
           )}
         </header>
 
-        <div className="mx-auto grid w-full max-w-6xl flex-1 grid-cols-1 md:grid-cols-[208px_minmax(0,1fr)]">
-          <Sidebar equityCount={allTheses.length} reportCount={reports.length} />
-          <div className="min-w-0">{children}</div>
-        </div>
+        <div className="mx-auto w-full max-w-6xl flex-1">{children}</div>
 
-        <footer className="mx-auto w-full max-w-6xl px-6 pb-10 pt-4 md:pl-[232px]">
-          <p className="label border-t border-rule pt-4 leading-relaxed text-muted">
-            Personal research. Not investment advice.
-          </p>
+        <footer className="mx-auto w-full max-w-6xl px-6 pb-10 pt-6">
+          <div className="flex flex-wrap items-baseline justify-between gap-3 border-t-2 border-ink pt-4">
+            <p className="label text-muted">Personal research. Not investment advice.</p>
+            <p className="label text-muted">Basis · {new Date().getFullYear()}</p>
+          </div>
         </footer>
       </body>
     </html>

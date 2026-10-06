@@ -56,7 +56,7 @@ export function NewThesisForm({ sectorEtfs }: { sectorEtfs: SectorEtf[] }) {
       <Link href="/" className="label text-muted hover:text-ink">
         ← All theses
       </Link>
-      <h1 className="mt-4 font-serif text-4xl font-medium tracking-tight">New thesis</h1>
+      <h1 className="display mt-4 text-[4.5rem]">New thesis</h1>
 
       <form action={createThesis} className="mt-10">
         <FormSection step="01" title="The position">

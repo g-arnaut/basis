@@ -58,7 +58,7 @@ export function Journal({
         <ul className="mt-6 space-y-6 border-l border-rule">
           {entries.map((e) => (
             <li key={e.id} className="relative pl-5">
-              <span aria-hidden className="absolute -left-[3.5px] top-1.5 h-[7px] w-[7px] rounded-full bg-brass" />
+              <span aria-hidden className="absolute -left-[3.5px] top-1.5 h-[7px] w-[7px] bg-forest" />
               <div className="flex items-center gap-2">
                 <p className="font-data text-xs text-muted">
                   {new Date(e.createdAt).toLocaleDateString("en-US", {
