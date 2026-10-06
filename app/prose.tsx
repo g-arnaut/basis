@@ -45,7 +45,7 @@ function parseBlocks(text: string): Block[] {
 }
 
 function Para({ text }: { text: string }) {
-  const m = text.match(/^([A-Z][A-Za-z'’-]*(?: [A-Za-z'’-]+)?)\.\s+(.*)$/s);
+  const m = text.match(/^([A-Z][A-Za-z'’-]*(?: [A-Za-z'’-]+)?)\.\s+([\s\S]*)$/);
   if (m && m[1].split(" ").length <= 2 && m[1].length >= 6) {
     return (
       <p>
