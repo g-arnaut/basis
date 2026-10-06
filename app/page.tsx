@@ -79,21 +79,21 @@ export default async function Home() {
       : null;
   const beatCount = alphaValues.filter((v) => v > 0).length;
 
-  const toneNight = (n: number | null) =>
-    n == null ? "text-night-text" : n >= 0 ? "text-gain-night" : "text-loss-night";
+  const tone = (n: number | null) =>
+    n == null ? "text-ink" : n >= 0 ? "text-gain" : "text-loss";
 
   const ledger = [
-    { label: "Median alpha vs S&P", value: formatPct(medianAlpha), cls: toneNight(medianAlpha) },
+    { label: "Median alpha vs S&P", value: formatPct(medianAlpha), cls: tone(medianAlpha) },
     {
       label: "Beat the index",
       value: alphaValues.length > 0 ? `${beatCount} of ${alphaValues.length}` : "—",
-      cls: "text-night-text",
+      cls: "text-ink",
     },
     {
       label: "Win rate, closed",
       value:
         closedRows.length > 0 ? `${Math.round((winRows.length / closedRows.length) * 100)}%` : "—",
-      cls: "text-night-text",
+      cls: "text-ink",
     },
   ];
 
@@ -110,7 +110,7 @@ export default async function Home() {
             className="display rise mt-5 text-[3.4rem] sm:text-[5rem] lg:text-[6.3rem]"
             style={{ ["--i" as string]: 1 }}
           >
-            Right or wrong, <span className="hl">measured against the market.</span>
+            Every call on the record, <span className="hl">scored against the market.</span>
           </h1>
           <p
             className="rise mt-8 max-w-md font-serif text-[1.2rem] leading-[1.5] text-ink/80"
@@ -128,30 +128,28 @@ export default async function Home() {
 
         {rows.length > 0 && (
           <aside
-            className="rise flex flex-col justify-between bg-night px-7 py-9 text-night-text sm:px-10 lg:py-14"
+            className="rise self-start border-2 border-ink bg-surface px-7 py-8 sm:px-9 lg:mr-6 lg:mt-16"
             style={{ ["--i" as string]: 2 }}
           >
             <div className="flex items-baseline justify-between gap-4">
-              <span className="label text-lime">Book summary</span>
-              <PricesAsOf date={latestPriceDate} dark />
+              <span className="label text-forest">Book summary</span>
+              <PricesAsOf date={latestPriceDate} />
             </div>
 
-            <div className="mt-10">
-              <p className="label text-night-muted">Average alpha vs S&amp;P</p>
-              <p
-                className={`display mt-2 text-[5.6rem] leading-none sm:text-[7rem] ${toneNight(avgAlpha)}`}
-              >
+            <div className="mt-8">
+              <p className="label text-muted">Average alpha vs S&amp;P</p>
+              <p className={`display mt-2 text-[5.2rem] leading-none sm:text-[6.4rem] ${tone(avgAlpha)}`}>
                 {formatPct(avgAlpha)}
               </p>
             </div>
 
-            <dl className="mt-10 border-t border-white/20">
+            <dl className="mt-8 border-t-2 border-ink">
               {ledger.map((l) => (
                 <div
                   key={l.label}
-                  className="flex items-baseline justify-between gap-4 border-b border-white/15 py-3.5"
+                  className="flex items-baseline justify-between gap-4 border-b border-rule py-3.5"
                 >
-                  <dt className="text-sm text-night-muted">{l.label}</dt>
+                  <dt className="text-sm text-muted">{l.label}</dt>
                   <dd className={`font-data text-xl ${l.cls}`}>{l.value}</dd>
                 </div>
               ))}

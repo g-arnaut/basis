@@ -28,7 +28,6 @@ function Glyph({ n }: { n: number | null }) {
   );
 }
 
-// Rows live on the dark stats panel, so tones use the on-dark variants.
 function StatRow({
   label,
   value,
@@ -41,15 +40,15 @@ function StatRow({
   glyphOf?: number | null;
 }) {
   return (
-    <div className="flex items-baseline justify-between border-b border-white/15 py-2.5 last:border-b-0">
-      <p className="text-sm text-night-muted">{label}</p>
+    <div className="flex items-baseline justify-between border-b border-rule py-2.5 last:border-b-0">
+      <p className="text-sm text-muted">{label}</p>
       <p
         className={`font-data text-sm ${
           tone === "gain"
-            ? "text-gain-night"
+            ? "text-gain"
             : tone === "loss"
-              ? "text-loss-night"
-              : "text-night-text"
+              ? "text-loss"
+              : "text-ink"
         }`}
       >
         {glyphOf !== undefined && <Glyph n={glyphOf} />}
@@ -62,7 +61,7 @@ function StatRow({
 function StatGroup({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <div>
-      <p className="label border-b border-lime/60 pb-2 text-lime">{title}</p>
+      <p className="label border-b-2 border-ink pb-2 text-forest">{title}</p>
       {children}
     </div>
   );
@@ -159,7 +158,7 @@ export default async function ThesisPage({
         </div>
 
         <aside className="rise order-1 space-y-8 md:order-2 md:sticky md:top-32 md:self-start" style={{ ["--i" as string]: 3 }}>
-          <div className="bg-night p-5 text-night-text">
+          <div className="border-2 border-ink bg-surface p-5">
             <div className="space-y-6">
               <StatGroup title="Price">
                 <StatRow label="Entry" value={`$${Number(thesis.entryPrice).toFixed(2)}`} />

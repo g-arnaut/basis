@@ -31,8 +31,8 @@ function formatMultiple(n: string | null): string {
 
 function Stat({ label, value }: { label: string; value: string }) {
   return (
-    <div className="flex items-baseline justify-between border-b border-white/15 py-2.5 last:border-b-0">
-      <p className="text-sm text-night-muted">{label}</p>
+    <div className="flex items-baseline justify-between border-b border-rule py-2.5 last:border-b-0">
+      <p className="text-sm text-muted">{label}</p>
       <p className="font-data text-sm">{value}</p>
     </div>
   );
@@ -82,8 +82,8 @@ export default async function ReportPage({
         </div>
 
         <div className="rise order-1 space-y-4 md:order-2 md:sticky md:top-32 md:self-start" style={{ ["--i" as string]: 2 }}>
-          <div className="bg-night p-5 text-night-text">
-            <p className="label border-b border-lime/60 pb-2 text-lime">Financial snapshot</p>
+          <div className="border-2 border-ink bg-surface p-5">
+            <p className="label border-b-2 border-ink pb-2 text-forest">Financial snapshot</p>
             {hasFinancials ? (
               <>
                 <Stat label="Fiscal period" value={report.fiscalPeriod ?? "—"} />
@@ -100,7 +100,7 @@ export default async function ReportPage({
                 <Stat label="ROIC" value={formatPct(report.roic)} />
               </>
             ) : (
-              <p className="py-4 text-sm text-night-muted">
+              <p className="py-4 text-sm text-muted">
                 {report.financialsError
                   ? `Financials unavailable (${report.financialsError}).`
                   : "Financials unavailable."}
