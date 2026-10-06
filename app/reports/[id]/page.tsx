@@ -30,8 +30,8 @@ function formatMultiple(n: string | null): string {
 
 function Stat({ label, value }: { label: string; value: string }) {
   return (
-    <div className="border-b border-rule py-2.5 last:border-b-0">
-      <p className="text-xs text-muted">{label}</p>
+    <div className="flex items-baseline justify-between border-b border-rule py-2.5 last:border-b-0">
+      <p className="text-sm text-muted">{label}</p>
       <p className="font-data text-sm">{value}</p>
     </div>
   );
@@ -50,34 +50,39 @@ export default async function ReportPage({
   const hasFinancials = report.financialsFetchedAt != null;
 
   return (
-    <main className="mx-auto w-full max-w-4xl px-6 py-14">
+    <main className="mx-auto w-full max-w-5xl px-6 py-12">
       <div className="flex items-center justify-between">
-        <Link href="/reports" className="text-sm text-muted hover:text-ink">
+        <Link href="/reports" className="label text-muted transition-colors hover:text-ink">
           ← Reports
         </Link>
         {admin && <DeleteReportButton reportId={report.id} />}
       </div>
 
-      <div className="mt-6">
-        <div className="flex items-baseline gap-2">
-          <span className="font-data text-sm text-muted">{report.ticker}</span>
+      <header className="rise mt-6" style={{ ["--i" as string]: 0 }}>
+        <div className="flex flex-wrap items-center gap-3">
+          <span className="font-data rounded-sm border border-ink/30 px-2 py-0.5 text-xs font-medium tracking-wide">
+            {report.ticker}
+          </span>
+          <span className="label text-muted">{report.companyName}</span>
           {report.thesis && (
-            <Link href={`/theses/${report.thesis.id}`} className="text-sm text-link hover:underline">
+            <Link href={`/theses/${report.thesis.id}`} className="label text-link hover:underline">
               Position {report.thesis.ticker} {report.thesis.status === "open" ? "open" : "closed"} →
             </Link>
           )}
         </div>
-        <h1 className="mt-1 text-3xl font-bold tracking-tight sm:text-4xl">{report.title}</h1>
-        <p className="mt-1 text-muted">{report.companyName}</p>
-      </div>
+        <h1 className="mt-4 max-w-3xl font-serif text-4xl font-medium leading-[1.08] tracking-tight sm:text-5xl">
+          {report.title}
+        </h1>
+      </header>
 
-      <div className="mt-10 grid grid-cols-1 gap-10 md:grid-cols-[1fr_260px]">
-        <div className="order-2 md:order-1">
-          <p className="whitespace-pre-wrap leading-relaxed">{report.analysis}</p>
+      <div className="mt-12 grid grid-cols-1 gap-12 md:grid-cols-[minmax(0,1fr)_280px]">
+        <div className="rise order-2 md:order-1" style={{ ["--i" as string]: 1 }}>
+          <p className="prose-research whitespace-pre-wrap">{report.analysis}</p>
         </div>
 
-        <div className="order-1 space-y-4 md:order-2">
-          <div className="border-y border-rule py-1 md:border md:p-4">
+        <div className="rise order-1 space-y-4 md:order-2 md:sticky md:top-32 md:self-start" style={{ ["--i" as string]: 2 }}>
+          <div className="border border-rule bg-surface p-5 shadow-[0_1px_0_0_var(--color-rule)]">
+            <p className="label border-b border-ink/80 pb-2 text-muted">Financial snapshot</p>
             {hasFinancials ? (
               <>
                 <Stat label="Fiscal period" value={report.fiscalPeriod ?? "—"} />
@@ -94,7 +99,7 @@ export default async function ReportPage({
                 <Stat label="ROIC" value={formatPct(report.roic)} />
               </>
             ) : (
-              <p className="py-3 text-sm text-muted">
+              <p className="py-4 text-sm text-muted">
                 {report.financialsError
                   ? `Financials unavailable (${report.financialsError}).`
                   : "Financials unavailable."}

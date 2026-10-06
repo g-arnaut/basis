@@ -28,26 +28,26 @@ export function CloseThesisForm({ thesisId }: { thesisId: number }) {
           closeThesis(thesisId, exitPrice, outcome, postMortem);
         });
       }}
-      className="space-y-4 border border-rule p-4"
+      className="space-y-4 border border-rule bg-surface p-4"
     >
       <div className="flex flex-wrap items-end gap-4">
         <div>
-          <label className="text-sm text-muted">Exit price</label>
+          <label className="label text-muted">Exit price</label>
           <input
             name="exitPrice"
             type="number"
             step="0.01"
             required
-            className="font-data mt-1 block w-28 border-b border-rule bg-transparent py-1 focus:border-ink focus:outline-none"
+            className="field font-data block w-28"
           />
         </div>
         <div>
-          <label className="text-sm text-muted">Outcome</label>
+          <label className="label text-muted">Outcome</label>
           <select
             name="outcome"
             required
             defaultValue="closed_win"
-            className="mt-1 block border-b border-rule bg-transparent py-1 focus:border-ink focus:outline-none"
+            className="field block"
           >
             <option value="closed_win">Win</option>
             <option value="closed_loss">Loss</option>
@@ -63,7 +63,7 @@ export function CloseThesisForm({ thesisId }: { thesisId: number }) {
           name="postMortem"
           required
           rows={3}
-          className="mt-1 w-full border-b border-rule bg-transparent py-1.5 focus:border-ink focus:outline-none"
+          className="field"
           placeholder="Be honest about which one it was..."
         />
       </div>
@@ -71,7 +71,7 @@ export function CloseThesisForm({ thesisId }: { thesisId: number }) {
         <button
           type="submit"
           disabled={isPending}
-          className="rounded-sm bg-ink px-4 py-2 text-sm text-paper disabled:opacity-50"
+          className="btn-primary px-4 py-2 text-sm disabled:opacity-50"
         >
           {isPending ? "Closing…" : "Confirm close"}
         </button>

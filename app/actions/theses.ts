@@ -114,6 +114,15 @@ export async function createThesis(formData: FormData) {
     targetPrice: formData.get("targetPrice"),
   });
 
+  // A mistyped year (e.g. 2030 for 2026) silently saves a price row that
+  // sorts to the end of the series and corrupts "latest price" and "Prices
+  // as of" - reject future dates outright. One day of slack covers viewers
+  // whose local date is already ahead of UTC.
+  const tomorrow = new Date(Date.now() + 86400000).toISOString().slice(0, 10);
+  if (parsed.entryDate > tomorrow) {
+    throw new Error(`Entry date ${parsed.entryDate} is in the future.`);
+  }
+
   // Guards against the double-submit case (e.g. a slow request plus an
   // impatient second click before the button disables) - a real duplicate
   // thesis, not two independent ones, always shares both ticker and entry

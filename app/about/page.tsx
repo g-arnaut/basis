@@ -1,5 +1,3 @@
-import Link from "next/link";
-
 const points: { title: string; body: string }[] = [
   {
     title: "Every thesis is public, win or lose.",
@@ -29,27 +27,41 @@ const points: { title: string; body: string }[] = [
 
 export default function AboutPage() {
   return (
-    <main className="mx-auto w-full max-w-2xl px-6 py-14">
-      <Link href="/" className="text-sm text-muted hover:text-ink">
-        ← Basis
-      </Link>
-      <h1 className="mt-4 text-3xl font-bold tracking-tight">How this works</h1>
+    <main className="mx-auto w-full max-w-3xl px-6 py-14">
+      <p className="label rise text-brass" style={{ ["--i" as string]: 0 }}>
+        Reference
+      </p>
+      <h1
+        className="rise mt-3 font-serif text-4xl font-medium tracking-tight sm:text-5xl"
+        style={{ ["--i" as string]: 1 }}
+      >
+        How this works
+      </h1>
 
-      <div className="mt-10 space-y-8">
-        {points.map((p) => (
-          <div key={p.title} className="border-t border-rule pt-6">
-            <p className="font-medium">{p.title}</p>
-            <p className="mt-1.5 leading-relaxed text-muted">{p.body}</p>
-          </div>
+      <ol className="mt-12 border-t border-ink/80">
+        {points.map((p, i) => (
+          <li
+            key={p.title}
+            className="rise grid grid-cols-[2.5rem_minmax(0,1fr)] gap-x-4 border-b border-rule py-7"
+            style={{ ["--i" as string]: i + 2 }}
+          >
+            <span className="font-data pt-1 text-xs text-brass">{String(i + 1).padStart(2, "0")}</span>
+            <div>
+              <h2 className="font-serif text-[1.35rem] font-medium leading-snug tracking-tight">
+                {p.title}
+              </h2>
+              <p className="mt-2 max-w-xl leading-relaxed text-muted">{p.body}</p>
+            </div>
+          </li>
         ))}
-      </div>
+      </ol>
 
-      <div className="mt-10 border-t border-rule pt-6">
-        <p className="font-medium">Personal research. Not investment advice.</p>
-        <p className="mt-1.5 leading-relaxed text-muted">
-          Assume the author may hold, or intend to hold, anything discussed
-          here. Nothing on this site accounts for anyone else's
-          circumstances, risk tolerance, or goals.
+      <div className="mt-10 border border-rule bg-surface p-6">
+        <p className="label text-muted">Disclosure</p>
+        <p className="mt-2 font-serif text-lg font-medium">Personal research. Not investment advice.</p>
+        <p className="mt-2 max-w-xl text-sm leading-relaxed text-muted">
+          Assume the author may hold, or intend to hold, anything discussed here. Nothing on this
+          site accounts for anyone else&apos;s circumstances, risk tolerance, or goals.
         </p>
       </div>
     </main>

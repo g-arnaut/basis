@@ -84,53 +84,77 @@ export default async function Home() {
       : null;
   const beatCount = alphaValues.filter((v) => v > 0).length;
 
+  const stats = [
+    {
+      label: "Average alpha vs S&P",
+      value: formatPct(avgAlpha),
+      cls: tone(avgAlpha),
+    },
+    {
+      label: "Median alpha vs S&P",
+      value: formatPct(medianAlpha),
+      cls: tone(medianAlpha),
+    },
+    {
+      label: "Beat the index",
+      value: alphaValues.length > 0 ? `${beatCount}/${alphaValues.length}` : "—",
+      cls: "text-ink",
+    },
+    {
+      label: "Win rate, closed",
+      value:
+        closedRows.length > 0 ? `${Math.round((winRows.length / closedRows.length) * 100)}%` : "—",
+      cls: "text-ink",
+    },
+  ];
+
   return (
-    <main className="mx-auto w-full max-w-2xl px-6 py-14">
-      <h1 className="max-w-lg text-4xl font-bold tracking-tight sm:text-5xl">
-        Right or wrong, measured against the market.
+    <main className="mx-auto w-full max-w-4xl px-6 py-14">
+      <p className="label rise text-brass" style={{ ["--i" as string]: 0 }}>
+        Equity desk
+      </p>
+      <h1
+        className="rise mt-4 max-w-2xl font-serif text-[2.6rem] font-medium leading-[1.04] tracking-tight sm:text-6xl"
+        style={{ ["--i" as string]: 1 }}
+      >
+        Right or wrong,{" "}
+        <em className="font-normal italic text-forest">measured against the market.</em>
       </h1>
-      <p className="mt-4 max-w-md leading-relaxed text-muted">
-        Equity research notes, and a public record of every call in them,
-        each one held to its sector and the S&amp;P 500 over exactly the
-        period it was open.
+      <p
+        className="rise mt-6 max-w-xl text-[1.0625rem] leading-relaxed text-muted"
+        style={{ ["--i" as string]: 2 }}
+      >
+        Equity research notes, and a public record of every call in them, each one held to its
+        sector and the S&amp;P 500 over exactly the period it was open.
       </p>
 
       {rows.length > 0 && (
         <>
-          <div className="mt-6">
-            <PricesAsOf date={latestPriceDate} />
+          <div className="rise mt-10" style={{ ["--i" as string]: 3 }}>
+            <div className="mb-3 flex flex-wrap items-baseline justify-between gap-2">
+              <span className="label text-muted">Book summary</span>
+              <PricesAsOf date={latestPriceDate} />
+            </div>
+            <dl className="grid grid-cols-2 divide-x divide-y divide-rule border border-rule bg-surface shadow-[0_1px_0_0_var(--color-rule)] sm:grid-cols-4 sm:divide-y-0">
+              {stats.map((s) => (
+                <div key={s.label} className="px-4 py-5">
+                  <dt className="label text-muted">{s.label}</dt>
+                  <dd className={`font-data mt-3 text-[1.9rem] font-medium leading-none ${s.cls}`}>
+                    {s.value}
+                  </dd>
+                </div>
+              ))}
+            </dl>
+            <HowMeasured />
           </div>
-          <div className="font-data mt-4 grid grid-cols-2 divide-x divide-y divide-rule border border-rule sm:grid-cols-4 sm:divide-y-0">
-            <div className="p-4">
-              <p className={`text-2xl font-medium ${tone(avgAlpha)}`}>{formatPct(avgAlpha)}</p>
-              <p className="mt-0.5 text-xs text-muted">average alpha, vs S&amp;P</p>
-            </div>
-            <div className="p-4">
-              <p className={`text-2xl font-medium ${tone(medianAlpha)}`}>{formatPct(medianAlpha)}</p>
-              <p className="mt-0.5 text-xs text-muted">median alpha, vs S&amp;P</p>
-            </div>
-            <div className="p-4">
-              <p className="text-2xl font-medium text-ink">
-                {alphaValues.length > 0 ? `${beatCount}/${alphaValues.length}` : "—"}
-              </p>
-              <p className="mt-0.5 text-xs text-muted">beat the index</p>
-            </div>
-            <div className="p-4">
-              <p className="text-2xl font-medium text-ink">
-                {closedRows.length > 0 ? `${Math.round((winRows.length / closedRows.length) * 100)}%` : "—"}
-              </p>
-              <p className="mt-0.5 text-xs text-muted">win rate, closed</p>
-            </div>
-          </div>
-          <HowMeasured />
         </>
       )}
 
       {rows.length === 0 && (
-        <div className="mt-16 border-y border-rule py-14 text-center text-muted">
-          <p>No theses yet.</p>
+        <div className="mt-16 border-y border-rule py-16 text-center">
+          <p className="font-serif text-xl italic text-muted">No theses yet.</p>
           {admin && (
-            <Link href="/theses/new" className="mt-2 inline-block text-link underline">
+            <Link href="/theses/new" className="mt-3 inline-block text-link underline">
               Write the first one
             </Link>
           )}
@@ -140,10 +164,10 @@ export default async function Home() {
       <ThesisList rows={rows} />
 
       {reports.length > 0 && (
-        <section className="mt-16 border-t border-rule pt-8">
-          <div className="flex items-baseline justify-between">
-            <p className="text-sm text-muted">Reports</p>
-            <Link href="/reports" className="text-sm text-link hover:underline">
+        <section className="mt-20">
+          <div className="flex items-end justify-between border-b border-ink/80 pb-3">
+            <h2 className="font-serif text-2xl font-medium tracking-tight">Latest reports</h2>
+            <Link href="/reports" className="label text-link hover:underline">
               All reports →
             </Link>
           </div>
@@ -151,11 +175,13 @@ export default async function Home() {
             <Link
               key={r.id}
               href={`/reports/${r.id}`}
-              className="block border-b border-rule py-5 hover:bg-ink/[0.02]"
+              className="group block border-b border-rule py-5 transition-colors hover:bg-surface"
             >
-              <span className="font-data text-sm text-muted">{r.ticker}</span>
-              <h3 className="mt-1 font-medium">{r.title}</h3>
-              <p className="mt-1 line-clamp-2 text-sm text-muted">{r.analysis}</p>
+              <span className="font-data text-xs font-medium text-muted">{r.ticker}</span>
+              <h3 className="mt-1 font-serif text-xl font-medium leading-snug tracking-tight group-hover:underline">
+                {r.title}
+              </h3>
+              <p className="mt-1.5 line-clamp-2 max-w-2xl text-sm text-muted">{r.analysis}</p>
             </Link>
           ))}
         </section>

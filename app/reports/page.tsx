@@ -9,44 +9,52 @@ export default async function ReportsPage() {
   const admin = await isAdmin();
 
   return (
-    <main className="mx-auto w-full max-w-2xl px-6 py-14">
-      <Link href="/" className="text-sm text-muted hover:text-ink">
-        ← Basis
-      </Link>
-
-      <div className="mt-4 flex items-baseline justify-between">
-        <h1 className="text-3xl font-bold tracking-tight">Reports</h1>
+    <main className="mx-auto w-full max-w-3xl px-6 py-14">
+      <p className="label rise text-brass" style={{ ["--i" as string]: 0 }}>
+        Research
+      </p>
+      <div className="rise mt-3 flex items-baseline justify-between gap-4" style={{ ["--i" as string]: 1 }}>
+        <h1 className="font-serif text-4xl font-medium tracking-tight sm:text-5xl">Reports</h1>
         {admin && (
-          <Link href="/reports/new" className="text-sm text-link hover:underline">
-            New report
+          <Link href="/reports/new" className="label text-link hover:underline">
+            New report +
           </Link>
         )}
       </div>
-      <p className="mt-2 text-muted">Deeper work behind the calls: financials, ratios, and the case.</p>
+      <p className="rise mt-4 max-w-lg text-muted" style={{ ["--i" as string]: 2 }}>
+        Deeper work behind the calls: financials, ratios, and the case.
+      </p>
 
       {reports.length === 0 ? (
-        <div className="mt-16 border-y border-rule py-14 text-center text-muted">
-          <p>No reports yet.</p>
+        <div className="mt-14 border-y border-rule py-16 text-center">
+          <p className="font-serif text-xl italic text-muted">No reports yet.</p>
           {admin && (
-            <Link href="/reports/new" className="mt-2 inline-block text-link underline">
+            <Link href="/reports/new" className="mt-3 inline-block text-link underline">
               Write the first one
             </Link>
           )}
         </div>
       ) : (
-        <div className="mt-8">
-          {reports.map((r) => (
+        <div className="mt-10 border-t border-ink/80">
+          {reports.map((r, i) => (
             <Link
               key={r.id}
               href={`/reports/${r.id}`}
-              className="block border-b border-rule py-5 hover:bg-ink/[0.02]"
+              style={{ ["--i" as string]: i + 3 }}
+              className="rise group block border-b border-rule py-6 transition-colors hover:bg-surface"
             >
-              <div className="flex items-baseline gap-2">
-                <span className="font-data text-sm text-muted">{r.ticker}</span>
-                {r.thesisId && <span className="text-xs text-muted">· position open</span>}
+              <div className="flex items-baseline gap-3">
+                <span className="font-data rounded-sm border border-ink/25 px-1.5 py-0.5 text-[11px] font-medium tracking-wide">
+                  {r.ticker}
+                </span>
+                {r.thesisId && <span className="label text-muted">Linked position</span>}
               </div>
-              <h2 className="mt-1 font-medium">{r.title}</h2>
-              <p className="mt-1 line-clamp-2 text-sm text-muted">{r.analysis}</p>
+              <h2 className="mt-3 font-serif text-2xl font-medium leading-snug tracking-tight group-hover:underline">
+                {r.title}
+              </h2>
+              <p className="mt-2 line-clamp-2 max-w-2xl text-sm leading-relaxed text-muted">
+                {r.analysis}
+              </p>
             </Link>
           ))}
         </div>

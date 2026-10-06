@@ -17,13 +17,13 @@ export function KillCriteriaList({
   const [isPending, startTransition] = useTransition();
 
   return (
-    <ul className="mt-3 space-y-2">
+    <ul className="mt-4 space-y-3">
       {criteria.map((c, i) => (
         <li key={i} className="flex items-start gap-3">
           {readOnly ? (
             <span
               className={`mt-1 flex h-4 w-4 flex-shrink-0 items-center justify-center border text-[10px] ${
-                c.hit ? "border-loss bg-loss text-white" : "border-rule"
+                c.hit ? "border-loss bg-loss text-white" : "border-ink/30"
               }`}
             >
               {c.hit ? "✓" : ""}
@@ -41,7 +41,7 @@ export function KillCriteriaList({
               className="mt-1 h-4 w-4 accent-loss"
             />
           )}
-          <span className={c.hit ? "text-loss line-through" : ""}>
+          <span className={`text-[0.95rem] leading-snug ${c.hit ? "text-loss line-through" : ""}`}>
             {c.condition}
             {c.hit && c.hitDate && (
               <span className="font-data ml-2 text-xs text-muted">

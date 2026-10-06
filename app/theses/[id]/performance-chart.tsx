@@ -8,9 +8,26 @@ import {
   CartesianGrid,
   Tooltip,
   Legend,
+  ReferenceLine,
   ResponsiveContainer,
 } from "recharts";
 import type { IndexedPoint } from "@/lib/performance";
+
+const INK = "#0f1a15";
+const FOREST = "#15513a";
+const BRASS = "#b98a3e";
+const MUTED = "#5d6b63";
+const RULE = "#dce3de";
+
+// Dates are plain calendar dates ("2026-09-22"); format in UTC so the tick
+// label never shifts a day for viewers west of UTC.
+function fmtTick(d: string) {
+  return new Date(`${String(d).slice(0, 10)}T00:00:00Z`).toLocaleDateString("en-US", {
+    month: "short",
+    day: "numeric",
+    timeZone: "UTC",
+  });
+}
 
 export function PerformanceChart({
   data,
@@ -23,8 +40,8 @@ export function PerformanceChart({
 }) {
   if (data.length < 2) {
     return (
-      <div className="flex h-64 items-center justify-center border border-dashed border-rule text-sm text-muted">
-        Chart appears once the daily cron logs a price beyond entry day.
+      <div className="flex h-64 items-center justify-center border border-dashed border-rule bg-surface px-6 text-center text-sm text-muted">
+        The chart appears once the daily job has logged a price beyond the entry day.
       </div>
     );
   }
@@ -32,57 +49,71 @@ export function PerformanceChart({
   return (
     <div className="h-72 w-full">
       <ResponsiveContainer width="100%" height="100%">
-        <LineChart data={data} margin={{ top: 8, right: 8, left: -16, bottom: 0 }}>
-          <CartesianGrid stroke="#E5E5E5" strokeDasharray="2 4" vertical={false} />
+        <LineChart data={data} margin={{ top: 8, right: 30, left: -12, bottom: 0 }}>
+          <CartesianGrid stroke={RULE} strokeDasharray="2 5" vertical={false} />
           <XAxis
             dataKey="date"
-            tick={{ fontSize: 11, fill: "#6B7280" }}
+            tickFormatter={fmtTick}
+            tick={{ fontSize: 11, fill: MUTED, fontFamily: "var(--font-mono)" }}
             tickLine={false}
-            axisLine={{ stroke: "#E5E5E5" }}
+            axisLine={{ stroke: RULE }}
           />
           <YAxis
-            tick={{ fontSize: 11, fill: "#6B7280" }}
+            tick={{ fontSize: 11, fill: MUTED, fontFamily: "var(--font-mono)" }}
             tickLine={false}
             axisLine={false}
             domain={["auto", "auto"]}
+            tickFormatter={(v) => Number(v).toFixed(0)}
           />
+          <ReferenceLine y={100} stroke={INK} strokeOpacity={0.35} />
           <Tooltip
+            cursor={{ stroke: INK, strokeOpacity: 0.25 }}
             contentStyle={{
-              background: "#FAFAFA",
-              border: "1px solid #E5E5E5",
+              background: "#ffffff",
+              border: `1px solid ${RULE}`,
+              borderRadius: 2,
               fontSize: 12,
               fontFamily: "var(--font-mono)",
+              boxShadow: "0 6px 18px rgba(15,26,21,0.08)",
             }}
-            formatter={(value) => `${Number(value).toFixed(1)}`}
+            labelFormatter={(d) => fmtTick(String(d))}
+            formatter={(value) => Number(value).toFixed(1)}
           />
-          <Legend wrapperStyle={{ fontSize: 12 }} />
+          <Legend
+            iconType="plainline"
+            wrapperStyle={{ fontSize: 12, fontFamily: "var(--font-mono)", paddingTop: 8 }}
+          />
           <Line
             type="monotone"
             dataKey="stock"
             name={tickerLabel}
-            stroke="#111113"
-            strokeWidth={2}
+            stroke={INK}
+            strokeWidth={2.25}
             dot={false}
+            activeDot={{ r: 3.5 }}
+            animationDuration={900}
           />
           {sectorLabel && (
             <Line
               type="monotone"
               dataKey="sectorEtf"
               name={sectorLabel}
-              stroke="#15803D"
+              stroke={FOREST}
               strokeWidth={1.5}
               dot={false}
-              strokeDasharray="4 3"
+              strokeDasharray="5 3"
+              animationDuration={900}
             />
           )}
           <Line
             type="monotone"
             dataKey="sp500"
             name="S&P 500"
-            stroke="#6B7280"
+            stroke={BRASS}
             strokeWidth={1.5}
             dot={false}
-            strokeDasharray="4 3"
+            strokeDasharray="5 3"
+            animationDuration={900}
           />
         </LineChart>
       </ResponsiveContainer>

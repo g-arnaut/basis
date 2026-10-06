@@ -7,9 +7,8 @@ import { createThesis } from "@/app/actions/theses";
 
 type SectorEtf = { id: number; ticker: string; name: string };
 
-const inputClass =
-  "mt-1 w-full border-b border-rule bg-transparent py-1.5 focus:border-ink focus:outline-none";
-const labelClass = "text-sm text-muted";
+const inputClass = "field";
+const labelClass = "label text-muted";
 
 function FormSection({
   step,
@@ -42,7 +41,7 @@ function SubmitButton() {
     <button
       type="submit"
       disabled={pending}
-      className="mt-10 w-full rounded-sm bg-ink py-3 text-paper disabled:opacity-50"
+      className="btn-primary mt-10 w-full py-3 disabled:opacity-50"
     >
       {pending ? "Saving…" : "Open thesis"}
     </button>
@@ -54,10 +53,10 @@ export function NewThesisForm({ sectorEtfs }: { sectorEtfs: SectorEtf[] }) {
 
   return (
     <main className="mx-auto w-full max-w-2xl px-6 py-14">
-      <Link href="/" className="text-sm text-muted hover:text-ink">
+      <Link href="/" className="label text-muted hover:text-ink">
         ← All theses
       </Link>
-      <h1 className="mt-4 text-3xl font-bold tracking-tight">New thesis</h1>
+      <h1 className="mt-4 font-serif text-4xl font-medium tracking-tight">New thesis</h1>
 
       <form action={createThesis} className="mt-10">
         <FormSection step="01" title="The position">
@@ -112,7 +111,13 @@ export function NewThesisForm({ sectorEtfs }: { sectorEtfs: SectorEtf[] }) {
             </div>
             <div>
               <label className={labelClass}>Entry date</label>
-              <input name="entryDate" type="date" required className={`font-data ${inputClass}`} />
+              <input
+                name="entryDate"
+                type="date"
+                required
+                max={new Date().toISOString().slice(0, 10)}
+                className={`font-data ${inputClass}`}
+              />
             </div>
             <div>
               <label className={labelClass}>Target price</label>
