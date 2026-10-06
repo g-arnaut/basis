@@ -27,27 +27,27 @@ const points: { title: string; body: string }[] = [
 
 export default function AboutPage() {
   return (
-    <main className="mx-auto w-full max-w-3xl px-6 py-14">
-      <p className="label rise text-brass" style={{ ["--i" as string]: 0 }}>
+    <main className="px-6 pb-16 pt-12">
+      <p className="label rise text-forest" style={{ ["--i" as string]: 0 }}>
         Reference
       </p>
       <h1
-        className="rise mt-3 font-serif text-4xl font-medium tracking-tight sm:text-5xl"
+        className="display rise mt-3 text-[4.5rem] sm:text-[7rem]"
         style={{ ["--i" as string]: 1 }}
       >
         How this works
       </h1>
 
-      <ol className="mt-12 border-t border-ink/80">
+      <ol className="mt-12 border-t-2 border-ink">
         {points.map((p, i) => (
           <li
             key={p.title}
             className="rise grid grid-cols-[2.5rem_minmax(0,1fr)] gap-x-4 border-b border-rule py-7"
             style={{ ["--i" as string]: i + 2 }}
           >
-            <span className="font-data pt-1 text-xs text-brass">{String(i + 1).padStart(2, "0")}</span>
+            <span className="font-data pt-1 text-xs text-forest">{String(i + 1).padStart(2, "0")}</span>
             <div>
-              <h2 className="font-serif text-[1.35rem] font-medium leading-snug tracking-tight">
+              <h2 className="font-serif text-[1.4rem] font-semibold leading-snug">
                 {p.title}
               </h2>
               <p className="mt-2 max-w-xl leading-relaxed text-muted">{p.body}</p>

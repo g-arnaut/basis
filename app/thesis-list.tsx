@@ -135,17 +135,15 @@ function Row({ row, index }: { row: Row; index: number }) {
     >
       <span
         aria-hidden
-        className="absolute left-0 top-0 h-full w-0.5 origin-top scale-y-0 bg-brass transition-transform duration-200 group-hover:scale-y-100"
+        className="absolute left-0 top-0 h-full w-0.5 origin-top scale-y-0 bg-forest transition-transform duration-200 group-hover:scale-y-100"
       />
 
       <div className="min-w-0 pl-3">
-        <div className="flex items-baseline gap-2.5">
-          <span className="font-data flex-shrink-0 rounded-sm border border-ink/25 px-1.5 py-0.5 text-[11px] font-medium tracking-wide">
-            {row.ticker}
-          </span>
-          <h3 className="truncate font-medium">{row.companyName}</h3>
+        <div className="flex items-baseline gap-3">
+          <span className="display flex-shrink-0 text-[2.6rem] leading-none">{row.ticker}</span>
+          <h3 className="truncate text-[0.95rem] font-medium">{row.companyName}</h3>
         </div>
-        <p className="mt-1.5 truncate text-sm text-muted">{row.writeUp}</p>
+        <p className="mt-2 truncate font-serif text-[0.95rem] text-muted">{row.writeUp}</p>
         <p className="label mt-2 text-muted">
           Long · {statusLabel(row.status)} · {fmtDate(row.entryDate)}
         </p>
@@ -192,8 +190,8 @@ export function ThesisList({ rows }: { rows: Row[] }) {
   return (
     <section className="mt-12">
       <div className="flex flex-wrap items-end justify-between gap-4">
-        <h2 className="font-serif text-2xl font-medium tracking-tight">Positions</h2>
-        <div role="tablist" aria-label="Filter positions" className="flex gap-1.5">
+        <h2 className="display text-[2.6rem]">Positions</h2>
+        <div role="tablist" aria-label="Filter positions" className="flex gap-6">
           {(["all", "open", "closed"] as const).map((f) => {
             const count =
               f === "all" ? rows.length : f === "open" ? openRows.length : closedRows.length;
@@ -204,13 +202,13 @@ export function ThesisList({ rows }: { rows: Row[] }) {
                 role="tab"
                 aria-selected={active}
                 onClick={() => setFilter(f)}
-                className={`label rounded-sm border px-3 py-1.5 transition-colors ${
+                className={`label border-b-2 pb-1 transition-colors ${
                   active
-                    ? "border-ink bg-ink text-paper"
-                    : "border-rule text-muted hover:border-ink/40 hover:text-ink"
+                    ? "border-ink text-ink"
+                    : "border-transparent text-muted hover:text-ink"
                 }`}
               >
-                {f} <span className="font-data ml-1 opacity-70">{count}</span>
+                {f} <span className="font-data opacity-70">{count}</span>
               </button>
             );
           })}
@@ -218,7 +216,7 @@ export function ThesisList({ rows }: { rows: Row[] }) {
       </div>
 
       <div
-        className={`label mt-5 hidden border-y border-ink/80 py-2.5 text-muted ${COLUMNS}`}
+        className={`label mt-5 hidden border-y-2 border-ink py-2.5 text-muted ${COLUMNS}`}
         aria-hidden
       >
         <span className="pl-3">Position</span>
@@ -230,7 +228,7 @@ export function ThesisList({ rows }: { rows: Row[] }) {
         <span className="text-right">Trend</span>
       </div>
 
-      <div className="mt-5 border-t border-ink/80 lg:mt-0 lg:border-t-0">
+      <div className="mt-5 border-t-2 border-ink lg:mt-0 lg:border-t-0">
         {visible.map((row, i) => (
           <Row key={row.id} row={row} index={i} />
         ))}

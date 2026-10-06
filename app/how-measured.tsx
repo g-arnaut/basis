@@ -15,7 +15,7 @@ export function HowMeasured() {
         {open ? "Hide methodology −" : "How these numbers are measured +"}
       </button>
       {open && (
-        <div className="mt-3 max-w-2xl space-y-2 border-l-2 border-brass/60 pl-4 text-sm leading-relaxed text-muted">
+        <div className="mt-3 max-w-2xl space-y-2 border-l-2 border-forest pl-4 text-sm leading-relaxed text-muted">
           <p>
             Every thesis gets a sector ETF benchmark (picked at open) and the
             S&amp;P 500 automatically. Both are indexed to 100 at the

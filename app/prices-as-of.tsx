@@ -16,14 +16,18 @@ function formatDate(dateStr: string) {
 // line, with a visible warning once the last logged price is more than 3
 // trading days stale (the cron only runs weekdays, so a Monday morning
 // visit with Friday's close is normal and shouldn't look broken).
-export function PricesAsOf({ date }: { date: string | null }) {
+export function PricesAsOf({ date, dark = false }: { date: string | null; dark?: boolean }) {
   if (!date) return null;
 
   const staleDays = tradingDaysSince(date);
   const stale = staleDays > 3;
 
   return (
-    <p className={`font-data text-xs ${stale ? "text-loss" : "text-muted"}`}>
+    <p
+      className={`font-data text-xs ${
+        stale ? (dark ? "text-loss-night" : "text-loss") : dark ? "text-night-muted" : "text-muted"
+      }`}
+    >
       Prices as of {formatDate(date)}
       {stale && ` (stale: ${staleDays} trading days old)`}
     </p>

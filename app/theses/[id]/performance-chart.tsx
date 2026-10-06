@@ -13,11 +13,11 @@ import {
 } from "recharts";
 import type { IndexedPoint } from "@/lib/performance";
 
-const INK = "#0f1a15";
-const FOREST = "#15513a";
-const BRASS = "#b98a3e";
-const MUTED = "#5d6b63";
-const RULE = "#dce3de";
+const INK = "#08120d";
+const FOREST = "#0d3b2a";
+const BRASS = "#52615a";
+const MUTED = "#52615a";
+const RULE = "#c9d2cb";
 
 // Dates are plain calendar dates ("2026-09-22"); format in UTC so the tick
 // label never shifts a day for viewers west of UTC.
@@ -88,7 +88,7 @@ export function PerformanceChart({
             dataKey="stock"
             name={tickerLabel}
             stroke={INK}
-            strokeWidth={2.25}
+            strokeWidth={3}
             dot={false}
             activeDot={{ r: 3.5 }}
             animationDuration={900}
@@ -99,9 +99,9 @@ export function PerformanceChart({
               dataKey="sectorEtf"
               name={sectorLabel}
               stroke={FOREST}
-              strokeWidth={1.5}
+              strokeWidth={2}
               dot={false}
-              strokeDasharray="5 3"
+              strokeDasharray="6 4"
               animationDuration={900}
             />
           )}

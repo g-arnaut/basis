@@ -8,6 +8,7 @@ import { KillCriteriaList } from "./kill-criteria";
 import { Journal } from "./journal";
 import { CloseThesisForm } from "./close-thesis-form";
 import { PricesAsOf } from "@/app/prices-as-of";
+import { Prose } from "@/app/prose";
 
 // Prices change daily — never freeze this page at build time.
 export const dynamic = "force-dynamic";
@@ -27,6 +28,7 @@ function Glyph({ n }: { n: number | null }) {
   );
 }
 
+// Rows live on the dark stats panel, so tones use the on-dark variants.
 function StatRow({
   label,
   value,
@@ -39,11 +41,15 @@ function StatRow({
   glyphOf?: number | null;
 }) {
   return (
-    <div className="flex items-baseline justify-between border-b border-rule py-2.5 last:border-b-0">
-      <p className="text-sm text-muted">{label}</p>
+    <div className="flex items-baseline justify-between border-b border-white/15 py-2.5 last:border-b-0">
+      <p className="text-sm text-night-muted">{label}</p>
       <p
         className={`font-data text-sm ${
-          tone === "gain" ? "text-gain" : tone === "loss" ? "text-loss" : "text-ink"
+          tone === "gain"
+            ? "text-gain-night"
+            : tone === "loss"
+              ? "text-loss-night"
+              : "text-night-text"
         }`}
       >
         {glyphOf !== undefined && <Glyph n={glyphOf} />}
@@ -56,16 +62,14 @@ function StatRow({
 function StatGroup({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <div>
-      <p className="label border-b border-ink/80 pb-2 text-muted">{title}</p>
+      <p className="label border-b border-lime/60 pb-2 text-lime">{title}</p>
       {children}
     </div>
   );
 }
 
 function SectionHeading({ children }: { children: React.ReactNode }) {
-  return (
-    <h2 className="label border-b border-ink/80 pb-2 text-muted">{children}</h2>
-  );
+  return <h2 className="display border-b-2 border-ink pb-2 text-[1.7rem]">{children}</h2>;
 }
 
 export default async function ThesisPage({
@@ -98,33 +102,29 @@ export default async function ThesisPage({
   const tone = (n: number | null): "gain" | "loss" => ((n ?? 0) >= 0 ? "gain" : "loss");
 
   return (
-    <main className="mx-auto w-full max-w-5xl px-6 py-12">
+    <main className="px-6 pb-16 pt-8">
       <Link href="/" className="label text-muted transition-colors hover:text-ink">
         ← All positions
       </Link>
 
-      <header className="rise mt-6 flex items-start justify-between gap-6" style={{ ["--i" as string]: 0 }}>
-        <div>
-          <div className="flex items-center gap-3">
-            <span className="font-data rounded-sm border border-ink/30 px-2 py-0.5 text-xs font-medium tracking-wide">
-              {thesis.ticker}
+      <header className="rise mt-6" style={{ ["--i" as string]: 0 }}>
+        <div className="flex items-end justify-between gap-6">
+          <h1 className="display text-[6.5rem] sm:text-[11rem]">{thesis.ticker}</h1>
+          {thesis.status !== "open" && (
+            <span className="label mb-4 flex-shrink-0 border-2 border-ink px-2.5 py-1 text-ink">
+              Closed, {thesis.status.replace("closed_", "")}
             </span>
-            {thesis.sector && <span className="label text-muted">{thesis.sector}</span>}
-            <span className="label text-muted">· Long</span>
-          </div>
-          <h1 className="mt-3 font-serif text-4xl font-medium leading-[1.05] tracking-tight sm:text-5xl">
-            {thesis.companyName}
-          </h1>
+          )}
         </div>
-        {thesis.status !== "open" && (
-          <span className="label mt-1 flex-shrink-0 rounded-sm border border-ink/30 px-2.5 py-1 text-ink">
-            Closed, {thesis.status.replace("closed_", "")}
-          </span>
-        )}
+        <div className="mt-3 flex flex-wrap items-baseline gap-x-4 border-t-2 border-ink pt-3">
+          <p className="text-xl font-semibold">{thesis.companyName}</p>
+          {thesis.sector && <p className="label text-muted">{thesis.sector}</p>}
+          <p className="label text-muted">Long</p>
+        </div>
       </header>
 
       <section
-        className="rise mt-10 border border-rule bg-surface p-4 shadow-[0_1px_0_0_var(--color-rule)] sm:p-6"
+        className="rise mt-10 border-2 border-ink bg-surface p-4 sm:p-6"
         style={{ ["--i" as string]: 1 }}
       >
         <div className="mb-4 flex flex-wrap items-baseline justify-between gap-2">
@@ -142,12 +142,12 @@ export default async function ThesisPage({
         <div className="rise order-2 space-y-12 md:order-1" style={{ ["--i" as string]: 2 }}>
           <section>
             <SectionHeading>The thesis</SectionHeading>
-            <p className="prose-research mt-5 whitespace-pre-wrap">{thesis.writeUp}</p>
+            <Prose text={thesis.writeUp} className="mt-5" />
           </section>
 
           <section>
             <SectionHeading>The bear case</SectionHeading>
-            <p className="prose-research mt-5 whitespace-pre-wrap text-ink/80">{thesis.bearCase}</p>
+            <Prose text={thesis.bearCase} className="mt-5 text-ink/80" />
           </section>
 
           <section>
@@ -159,7 +159,7 @@ export default async function ThesisPage({
         </div>
 
         <aside className="rise order-1 space-y-8 md:order-2 md:sticky md:top-32 md:self-start" style={{ ["--i" as string]: 3 }}>
-          <div className="border border-rule bg-surface p-5 shadow-[0_1px_0_0_var(--color-rule)]">
+          <div className="bg-night p-5 text-night-text">
             <div className="space-y-6">
               <StatGroup title="Price">
                 <StatRow label="Entry" value={`$${Number(thesis.entryPrice).toFixed(2)}`} />
