@@ -6,19 +6,18 @@ import { createReport } from "@/app/actions/reports";
 
 type ThesisOption = { id: number; ticker: string; companyName: string };
 
-const inputClass =
-  "mt-1 w-full border-b border-rule bg-transparent py-1.5 focus:border-ink focus:outline-none";
-const labelClass = "text-sm text-muted";
+const inputClass = "field";
+const labelClass = "label text-muted";
 
 export function NewReportForm({ theses }: { theses: ThesisOption[] }) {
   const [pending, setPending] = useState(false);
 
   return (
     <main className="mx-auto w-full max-w-2xl px-6 py-14">
-      <Link href="/reports" className="text-sm text-muted hover:text-ink">
+      <Link href="/reports" className="label text-muted hover:text-ink">
         ← Reports
       </Link>
-      <h1 className="mt-4 text-3xl font-bold tracking-tight">New report</h1>
+      <h1 className="mt-4 font-serif text-4xl font-medium tracking-tight">New report</h1>
       <p className="mt-2 text-sm text-muted">
         Financials pull automatically from the ticker on save. If the pull
         fails, the report still saves with your analysis, and you can retry
@@ -85,7 +84,7 @@ export function NewReportForm({ theses }: { theses: ThesisOption[] }) {
         <button
           type="submit"
           disabled={pending}
-          className="w-full rounded-sm bg-ink py-3 text-paper disabled:opacity-50"
+          className="btn-primary w-full py-3 disabled:opacity-50"
         >
           {pending ? "Saving and pulling financials…" : "Publish report"}
         </button>

@@ -6,12 +6,16 @@ export function HowMeasured() {
   const [open, setOpen] = useState(false);
 
   return (
-    <div className="mt-3">
-      <button onClick={() => setOpen(!open)} className="text-sm text-link hover:underline">
-        {open ? "Hide" : "How these numbers are measured"}
+    <div className="mt-4">
+      <button
+        onClick={() => setOpen(!open)}
+        aria-expanded={open}
+        className="label text-link hover:underline"
+      >
+        {open ? "Hide methodology −" : "How these numbers are measured +"}
       </button>
       {open && (
-        <div className="mt-3 space-y-2 border-l-2 border-rule pl-4 text-sm text-muted">
+        <div className="mt-3 max-w-2xl space-y-2 border-l-2 border-brass/60 pl-4 text-sm leading-relaxed text-muted">
           <p>
             Every thesis gets a sector ETF benchmark (picked at open) and the
             S&amp;P 500 automatically. Both are indexed to 100 at the

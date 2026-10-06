@@ -18,14 +18,25 @@ function formatPct(n: number | null) {
   return `${sign}${n.toFixed(1)}%`;
 }
 
+function Glyph({ n }: { n: number | null }) {
+  if (n == null || n === 0) return null;
+  return (
+    <span aria-hidden className="mr-1 text-[8px] leading-none">
+      {n > 0 ? "▲" : "▼"}
+    </span>
+  );
+}
+
 function StatRow({
   label,
   value,
   tone,
+  glyphOf,
 }: {
   label: string;
   value: string;
   tone?: "gain" | "loss";
+  glyphOf?: number | null;
 }) {
   return (
     <div className="flex items-baseline justify-between border-b border-rule py-2.5 last:border-b-0">
@@ -35,9 +46,25 @@ function StatRow({
           tone === "gain" ? "text-gain" : tone === "loss" ? "text-loss" : "text-ink"
         }`}
       >
+        {glyphOf !== undefined && <Glyph n={glyphOf} />}
         {value}
       </p>
     </div>
+  );
+}
+
+function StatGroup({ title, children }: { title: string; children: React.ReactNode }) {
+  return (
+    <div>
+      <p className="label border-b border-ink/80 pb-2 text-muted">{title}</p>
+      {children}
+    </div>
+  );
+}
+
+function SectionHeading({ children }: { children: React.ReactNode }) {
+  return (
+    <h2 className="label border-b border-ink/80 pb-2 text-muted">{children}</h2>
   );
 }
 
@@ -68,91 +95,112 @@ export default async function ThesisPage({
   const toTarget = ((Number(thesis.targetPrice) - latestPrice) / latestPrice) * 100;
   const latestPriceDate = history.length > 0 ? history[history.length - 1].date : null;
 
+  const tone = (n: number | null): "gain" | "loss" => ((n ?? 0) >= 0 ? "gain" : "loss");
+
   return (
-    <main className="mx-auto w-full max-w-4xl px-6 py-14">
-      <Link href="/" className="text-sm text-muted hover:text-ink">
-        ← All theses
+    <main className="mx-auto w-full max-w-5xl px-6 py-12">
+      <Link href="/" className="label text-muted transition-colors hover:text-ink">
+        ← All positions
       </Link>
 
-      <div className="mt-6 flex items-start justify-between gap-6">
+      <header className="rise mt-6 flex items-start justify-between gap-6" style={{ ["--i" as string]: 0 }}>
         <div>
-          <div className="flex items-baseline gap-2">
-            <span className="font-data text-sm text-muted">{thesis.ticker}</span>
-            {thesis.sector && <span className="text-sm text-muted">{thesis.sector}</span>}
+          <div className="flex items-center gap-3">
+            <span className="font-data rounded-sm border border-ink/30 px-2 py-0.5 text-xs font-medium tracking-wide">
+              {thesis.ticker}
+            </span>
+            {thesis.sector && <span className="label text-muted">{thesis.sector}</span>}
+            <span className="label text-muted">· Long</span>
           </div>
-          <h1 className="mt-1 text-3xl font-bold tracking-tight sm:text-4xl">{thesis.companyName}</h1>
+          <h1 className="mt-3 font-serif text-4xl font-medium leading-[1.05] tracking-tight sm:text-5xl">
+            {thesis.companyName}
+          </h1>
         </div>
         {thesis.status !== "open" && (
-          <span className="mt-1 flex-shrink-0 rounded-full bg-ink/5 px-3 py-1 text-xs text-muted">
-            {thesis.status.replace("closed_", "")}
+          <span className="label mt-1 flex-shrink-0 rounded-sm border border-ink/30 px-2.5 py-1 text-ink">
+            Closed, {thesis.status.replace("closed_", "")}
           </span>
         )}
-      </div>
+      </header>
 
-      <div className="mt-8">
+      <section
+        className="rise mt-10 border border-rule bg-surface p-4 shadow-[0_1px_0_0_var(--color-rule)] sm:p-6"
+        style={{ ["--i" as string]: 1 }}
+      >
+        <div className="mb-4 flex flex-wrap items-baseline justify-between gap-2">
+          <p className="label text-muted">Indexed performance, entry = 100</p>
+          <PricesAsOf date={latestPriceDate} />
+        </div>
         <PerformanceChart
           data={indexed}
           tickerLabel={thesis.ticker}
           sectorLabel={thesis.sectorEtf?.ticker ?? null}
         />
-        <div className="mt-2">
-          <PricesAsOf date={latestPriceDate} />
-        </div>
-      </div>
+      </section>
 
-      <div className="mt-10 grid grid-cols-1 gap-10 md:grid-cols-[1fr_260px]">
-        <div className="order-2 space-y-10 md:order-1">
+      <div className="mt-12 grid grid-cols-1 gap-12 md:grid-cols-[minmax(0,1fr)_280px]">
+        <div className="rise order-2 space-y-12 md:order-1" style={{ ["--i" as string]: 2 }}>
           <section>
-            <p className="whitespace-pre-wrap leading-relaxed">{thesis.writeUp}</p>
+            <SectionHeading>The thesis</SectionHeading>
+            <p className="prose-research mt-5 whitespace-pre-wrap">{thesis.writeUp}</p>
           </section>
 
           <section>
-            <h2 className="text-lg">The bear case</h2>
-            <p className="mt-2 whitespace-pre-wrap leading-relaxed text-muted">{thesis.bearCase}</p>
+            <SectionHeading>The bear case</SectionHeading>
+            <p className="prose-research mt-5 whitespace-pre-wrap text-ink/80">{thesis.bearCase}</p>
           </section>
 
           <section>
-            <h2 className="text-lg">Journal</h2>
-            <div className="mt-3">
+            <SectionHeading>Journal</SectionHeading>
+            <div className="mt-5">
               <Journal thesisId={thesis.id} entries={journalEntries} readOnly={!admin} />
             </div>
           </section>
         </div>
 
-        <div className="order-1 space-y-8 md:order-2">
-          <div className="border-y border-rule py-1 md:border md:p-4">
-            <StatRow label="Entry" value={`$${Number(thesis.entryPrice).toFixed(2)}`} />
-            <StatRow label="Current" value={`$${latestPrice.toFixed(2)}`} />
-            <StatRow label="Target" value={`$${Number(thesis.targetPrice).toFixed(2)}`} />
-            <StatRow
-              label="Return"
-              value={formatPct(rawReturn)}
-              tone={rawReturn >= 0 ? "gain" : "loss"}
-            />
-            <StatRow
-              label="Sector return"
-              value={formatPct(benchmarks.sector)}
-              tone={(benchmarks.sector ?? 0) >= 0 ? "gain" : "loss"}
-            />
-            <StatRow
-              label="S&P 500 return"
-              value={formatPct(benchmarks.sp500)}
-              tone={(benchmarks.sp500 ?? 0) >= 0 ? "gain" : "loss"}
-            />
-            <StatRow label="To target" value={formatPct(toTarget)} />
-            <StatRow
-              label="Held"
-              value={(() => {
-                const start = new Date(thesis.entryDate);
-                const end = thesis.exitDate ? new Date(thesis.exitDate) : new Date();
-                const days = Math.max(0, Math.round((end.getTime() - start.getTime()) / 86400000));
-                return days < 31 ? `${days}d` : `${Math.round(days / 30.4)}mo`;
-              })()}
-            />
+        <aside className="rise order-1 space-y-8 md:order-2 md:sticky md:top-32 md:self-start" style={{ ["--i" as string]: 3 }}>
+          <div className="border border-rule bg-surface p-5 shadow-[0_1px_0_0_var(--color-rule)]">
+            <div className="space-y-6">
+              <StatGroup title="Price">
+                <StatRow label="Entry" value={`$${Number(thesis.entryPrice).toFixed(2)}`} />
+                <StatRow label="Current" value={`$${latestPrice.toFixed(2)}`} />
+                <StatRow label="Target" value={`$${Number(thesis.targetPrice).toFixed(2)}`} />
+                <StatRow label="To target" value={formatPct(toTarget)} glyphOf={toTarget} />
+              </StatGroup>
+              <StatGroup title="Since entry">
+                <StatRow
+                  label="Return"
+                  value={formatPct(rawReturn)}
+                  tone={tone(rawReturn)}
+                  glyphOf={rawReturn}
+                />
+                <StatRow
+                  label={`${thesis.sectorEtf?.ticker ?? "Sector"} return`}
+                  value={formatPct(benchmarks.sector)}
+                  tone={tone(benchmarks.sector)}
+                  glyphOf={benchmarks.sector}
+                />
+                <StatRow
+                  label="S&P 500 return"
+                  value={formatPct(benchmarks.sp500)}
+                  tone={tone(benchmarks.sp500)}
+                  glyphOf={benchmarks.sp500}
+                />
+                <StatRow
+                  label="Held"
+                  value={(() => {
+                    const start = new Date(thesis.entryDate);
+                    const end = thesis.exitDate ? new Date(thesis.exitDate) : new Date();
+                    const days = Math.max(0, Math.round((end.getTime() - start.getTime()) / 86400000));
+                    return days < 31 ? `${days}d` : `${Math.round(days / 30.4)}mo`;
+                  })()}
+                />
+              </StatGroup>
+            </div>
           </div>
 
           <div>
-            <h2 className="text-base">What would prove this wrong</h2>
+            <SectionHeading>What would prove this wrong</SectionHeading>
             <KillCriteriaList
               thesisId={thesis.id}
               criteria={thesis.killCriteria as any}
@@ -165,7 +213,7 @@ export default async function ThesisPage({
               <CloseThesisForm thesisId={thesis.id} />
             </div>
           )}
-        </div>
+        </aside>
       </div>
     </main>
   );

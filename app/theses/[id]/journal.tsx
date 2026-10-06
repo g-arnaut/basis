@@ -40,7 +40,7 @@ export function Journal({
             name="content"
             required
             placeholder="Add a dated note..."
-            className="flex-1 border-b border-rule bg-transparent py-1.5 focus:border-ink focus:outline-none"
+            className="field mt-0 flex-1"
           />
           <button
             type="submit"
@@ -55,9 +55,10 @@ export function Journal({
       {entries.length === 0 && readOnly ? (
         <p className="text-sm text-muted">No entries yet.</p>
       ) : (
-        <ul className="mt-6 space-y-5">
+        <ul className="mt-6 space-y-6 border-l border-rule">
           {entries.map((e) => (
-            <li key={e.id} className="border-l-2 border-rule pl-4">
+            <li key={e.id} className="relative pl-5">
+              <span aria-hidden className="absolute -left-[3.5px] top-1.5 h-[7px] w-[7px] rounded-full bg-brass" />
               <div className="flex items-center gap-2">
                 <p className="font-data text-xs text-muted">
                   {new Date(e.createdAt).toLocaleDateString("en-US", {
@@ -67,12 +68,12 @@ export function Journal({
                   })}
                 </p>
                 {e.entryType !== "update" && (
-                  <span className="rounded-full bg-ink/5 px-2 py-0.5 text-[11px] text-muted">
+                  <span className="label rounded-sm border border-rule px-1.5 py-0.5 text-[9px] text-muted">
                     {e.entryType.replace(/_/g, " ")}
                   </span>
                 )}
               </div>
-              <p className="mt-1">{e.content}</p>
+              <p className="mt-1.5 leading-relaxed">{e.content}</p>
             </li>
           ))}
         </ul>
